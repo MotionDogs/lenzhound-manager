@@ -35,6 +35,13 @@ module.exports = React.createClass({
         };
     },
 
+    componentWillReceiveProps(nextProps, nextContext) {
+        this.setState({
+            value: nextProps.value,
+            stringValue: nextProps.value.toString(),
+        });
+    },
+
     render() {
         const styles = {
             header: {
@@ -72,7 +79,7 @@ module.exports = React.createClass({
                         stringValue: stringValue,
                     });
 
-                    this.props.onChange();
+                    this.props.onChange(parsed);
                 } else if (stringValue == '') {
                     this.setState({
                         stringValue: stringValue,
@@ -87,7 +94,7 @@ module.exports = React.createClass({
                     stringValue: val.toString(),
                 });
 
-                this.props.onChange();
+                this.props.onChange(val);
             },
         };
 

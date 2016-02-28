@@ -9,8 +9,14 @@ const ThemeManager = require('material-ui/lib/styles/theme-manager');
 const Theme = require('./theme');
 const NavigationClose = require('material-ui/lib/svg-icons/navigation/close');
 const IconButton = require('material-ui/lib/icon-button');
+const _ = require('lodash');
 
-module.exports = React.createClass({
+var Root = React.createClass({
+
+    propTypes: {
+        settings: React.PropTypes.object,
+        pluggedIn: React.PropTypes.bool,
+    },
 
     childContextTypes : {
         muiTheme: React.PropTypes.object,
@@ -24,7 +30,7 @@ module.exports = React.createClass({
 
     getInitialState() {
         return {
-            navOpen: false,
+            navOpen: false
         };
     },
 
@@ -33,12 +39,21 @@ module.exports = React.createClass({
             appBarLeftIcon: () => {this.setState({navOpen: true})}
         };
 
+        const pluggedIn = this.props.pluggedIn;
+
         const styles = {
             rootDiv: {
-                background: '#e6e2e7',
+                background: 'url(content/lenzhound-bg.svg)',
                 position: 'absolute',
                 width: '100%',
-                height: '100%'
+                height: '100%',
+            },
+            innerDiv: {
+                background: '#eee',
+                width: '100%',
+                height: '100%',
+                opacity: pluggedIn ? 1 : 0,
+                transition: '0.5s',
             },
             appBar: {
                 WebkitUserSelect: "none",
@@ -47,19 +62,51 @@ module.exports = React.createClass({
             txrPaw: {
                 marginLeft: 'auto',
                 marginRight: 'auto',
-                marginTop: 40
-            }
+                marginTop: 40,
+            },
+            pawWrapper: {
+                position: 'relative',
+                left: pluggedIn ? 0 : 500,
+                transition: '0.5s',
+                width: '60%',
+                float: 'left',
+            },
+            startImage: {
+                position: 'absolute',
+                width: '100%',
+                height: '100%'
+            },
+            settingsWrapper: {
+                position: 'relative',
+                right: pluggedIn ? 0 : 500,
+                transition: '0.5s',
+                width: '40%',
+                float: 'left',
+            },
         };
 
         return (
         <div style={styles.rootDiv}>
-            <div style={{width: '40%', float: 'left'}}>
-                <TxrSettings />
-            </div>
-            <div style={{width: '60%', float: 'left'}}>
-                <TxrPaw style={styles.txrPaw}/>
+            <div style={styles.innerDiv}>
+                <div style={styles.settingsWrapper}>
+                    <TxrSettings {...this.props.settings}/>
+                </div>
+                <div style={styles.pawWrapper}>
+                    <TxrPaw style={styles.txrPaw} {...this.props.paw}/>
+                </div>
             </div>
         </div>
         );
     }
 });
+
+var props = {};
+module.exports = {
+    setProps(newProps) {
+        props = _.merge(props, newProps);
+        ReactDOM.render(
+            <Root {...props}/>,
+            document.getElementById('app')
+        );
+    }
+};

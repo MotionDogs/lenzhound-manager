@@ -4,7 +4,4 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-const.appTitle	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\src\root.js	/^const resources = {appTitle: "lenzhound"};$/;"	property	line:3
-const.-webkit-user-select	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\src\root.js	/^    "-webkit-user-select": "none",$/;"	property	line:6
-const.-webkit-app-region	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\src\root.js	/^    "-webkit-app-region": "drag"$/;"	property	line:7
-render	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\src\root.js	/^    render() {$/;"	function	line:11
+const	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\src\index.js	/^const retry = function (lambda) {$/;"	function	line:8

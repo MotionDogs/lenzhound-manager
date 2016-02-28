@@ -24,8 +24,10 @@
     "electron-rebuild": "^1.1.1"
   },
   "dependencies": {
+    "event-emitter": "^0.3.4",
     "lodash": "^4.3.0",
     "material-ui": "^0.14.2",
+    "promise": "^7.1.1",
     "react": "^0.14.6",
     "react-dom": "^0.14.6",
     "react-tap-event-plugin": "^0.2.1",
