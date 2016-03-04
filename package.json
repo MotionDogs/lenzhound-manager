@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "build": "./node_modules/.bin/babel ./src -d ./lib",
-    "package": "./node_modules/.bin/electron-packager . dist --platform=win32 --arch=x64 --version=0.36.5",
+    "package": "./node_modules/.bin/electron-packager . dist --platform=darwin --arch=x64 --version=0.36.5",
     "start": "electron main.js"
   },
   "keywords": [

@@ -1,0 +1,56 @@
+{
+  "name": "avrgirl-arduino",
+  "version": "1.6.6",
+  "description": "A NodeJS library for flashing compiled sketch files to Arduino microcontroller boards.",
+  "bin": "./bin/cli.js",
+  "main": "avrgirl-arduino.js",
+  "scripts": {
+    "test": "gulp test",
+    "cover": "istanbul cover ./tests/*.spec.js && istanbul-coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noopkat/avrgirl-arduino.git"
+  },
+  "keywords": [
+    "arduino",
+    "avr",
+    "avr109",
+    "stk500",
+    "avrdude",
+    "avrgirl",
+    "avrg"
+  ],
+  "author": "Suz Hinton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/noopkat/avrgirl-arduino/issues"
+  },
+  "homepage": "https://github.com/noopkat/avrgirl-arduino",
+  "dependencies": {
+    "async": "^1.4.2",
+    "avrga-tester": "1.x",
+    "chip.avr.avr109": "^1.0.4",
+    "colors": "^1.1.2",
+    "graceful-fs": "^4.1.2",
+    "intel-hex": "^0.1.1",
+    "minimist": "^1.2.0",
+    "serialport": "^2.0.5",
+    "stk500": "git://github.com/noopkat/js-stk500v1#avrgirl",
+    "stk500-v2": "^1.0.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-jscs": "^3.0.2",
+    "gulp-jshint": "^2.0.0",
+    "gulp-tape": "0.0.6",
+    "istanbul": "^0.4.0",
+    "istanbul-coveralls": "^1.0.3",
+    "jshint-stylish": "^2.1.0",
+    "proxyquire": "^1.7.3",
+    "sinon": "^1.17.2",
+    "tap-spec": "^4.1.0",
+    "tape": "^4.2.1",
+    "virtual-serialport": "^0.1.2"
+  }
+}

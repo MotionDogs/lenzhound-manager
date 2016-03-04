@@ -3,6 +3,8 @@
 const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
+const fs = require('fs');
+const https = require('https');
 
 var mainWindow;
 
@@ -14,7 +16,7 @@ const createWindow = function () {
       autoHideMenuBar: true,
   });
   mainWindow.loadURL('file://' + __dirname + '/index.html');
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', function() {
     mainWindow = null;

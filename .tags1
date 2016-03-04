@@ -4,4 +4,5 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-const	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\src\index.js	/^const retry = function (lambda) {$/;"	function	line:8
+mainWindow	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\main.js	/^var mainWindow;$/;"	variable	line:11
+const	C:\Users\douglas.thayer\Documents\GitHub\lenzhound-manager\main.js	/^const createWindow = function () {$/;"	function	line:15
