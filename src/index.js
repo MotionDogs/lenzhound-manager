@@ -5,26 +5,44 @@ const events = require('./lib/events');
 const api = require('./lib/serial-api');
 const Promise = require('promise');
 
-const retry = function (lambda) {
-    return new Promise((ok, err) => {
-        lambda().then((val) => ok(val), _ => {
-            console.log(_);
-            lambda().then(val => ok(val), e => err(e));
+const poll = (period, lambda) => {
+    var interval = setInterval(() => {
+        lambda(() => {
+            clearInterval(interval);
         });
-    });
-};
+    }, period);
+    return interval;
+}
+
+var pollings = [];
 
 events.on("SERIAL_PORT_OPEN", () => {
-    retry(() => api.getStartInCal()).then(startInCal =>
-        retry(() => api.getMaxSpeed()).then(maxSpeed =>
-            retry(() => api.getAccel()).then(accel =>
-                root.setProps({
-                    settings:{startInCal, maxSpeed, accel},
-                    pluggedIn: true
-                }))));
+    const pollForSetting = (promise, setting) => {
+        return poll(1000, stop => promise().then(result => {
+            root.setProps({
+                settings:{[setting]: result},
+            });
+            stop();
+        }, err => {}));
+    };
+
+    root.setProps({
+        pluggedIn: true,
+        settings: {
+            startInCal: null,
+            maxSpeed: null,
+            accel: null,
+        }
+    });
+    pollings.push(pollForSetting(() => api.getStartInCal(), "startInCal"));
+    pollings.push(pollForSetting(() => api.getMaxSpeed(), "maxSpeed"));
+    pollings.push(pollForSetting(() => api.getAccel(), "accel"));
+
+    api.getLaterTxrVersionIfExists().then(v => console.log(v));
 });
 
 events.on("SERIAL_PORT_CLOSE", () => {
+    pollings.forEach(p => clearInterval(p));
     root.setProps({pluggedIn: false});
 });
 
@@ -33,12 +51,14 @@ events.on("SET_START_IN_CAL", (startInCal) => {
     api.setStartInCal(startInCal);
 });
 
-events.on("SET_MAX_VELOCITY", (val) => {
-    api.setMaxSpeed(val);
+events.on("SET_MAX_VELOCITY", (maxSpeed) => {
+    root.setProps({settings:{maxSpeed}});
+    api.setMaxSpeed(maxSpeed);
 });
 
-events.on("SET_ACCEL", (val) => {
-    api.setAccel(val);
+events.on("SET_ACCEL", (accel) => {
+    root.setProps({settings:{accel}});
+    api.setAccel(accel);
 });
 
 events.on("RESPONSE_OUTPUT:*", (val) => {

@@ -1,7 +1,7 @@
 const React = require('react');
 const Divider = require('material-ui/lib/divider');
 const Paper = require('material-ui/lib/paper');
-const Toggle = require('material-ui/lib/toggle');
+const Checkbox = require('material-ui/lib/checkbox');
 const SliderControl = require('./slider-control');
 const events = require('./events');
 
@@ -13,14 +13,6 @@ module.exports = React.createClass({
         maxSpeed: React.PropTypes.number,
         accel: React.PropTypes.number,
         startInCal: React.PropTypes.bool,
-    },
-
-    getDefaultProps: function() {
-        return {
-            maxSpeed: 200,
-            accel: 16,
-            startInCal: false,
-        };
     },
 
     render() {
@@ -41,35 +33,36 @@ module.exports = React.createClass({
                 padding: 14,
                 paddingBottom: 20,
             },
-            toggle: {
-                // marginTop: 16,
-            },
         };
 
         var logb = (base, val) => Math.log10(val) / Math.log10(base);
         var powRounded = (base, val) => Math.round(Math.pow(base, val));
+        var clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 
         return (
         <Paper style={styles.paper}>
             <SliderControl
                 title="Max speed"
-                value={this.props.maxSpeed}
-                transform={(v) => logb(MAX_MAX_SPEED, v)}
+                disabled={this.props.maxSpeed === null}
+                value={clamp(this.props.maxSpeed || 0, 0, 32768)}
+                transform={(v) => v && logb(MAX_MAX_SPEED, v)}
                 invTransform={(v) => powRounded(MAX_MAX_SPEED, v)}
                 onChange={callbacks.changeMaxSpeed}
             />
             <SliderControl
                 title="Acceleration"
-                value={this.props.accel}
+                disabled={this.props.accel === null}
+                value={clamp(this.props.accel || 0, 0, 32)}
                 transform={(v) => v / MAX_ACCEL}
                 invTransform={(v) => Math.round(v * MAX_ACCEL)}
                 onChange={callbacks.changeAccel}
             />
-            <Toggle
+            <Checkbox
               label="Start in calibration mode"
-              style={styles.toggle}
-              onToggle={callbacks.toggleStartInCal}
-              defaultToggled={this.props.startInCal}
+              labelPosition='left'
+              disabled={this.props.startInCal === null}
+              onCheck={callbacks.toggleStartInCal}
+              defaultChecked={this.props.startInCal || false}
             />
         </Paper>
         )

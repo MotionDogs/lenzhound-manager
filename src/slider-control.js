@@ -38,7 +38,7 @@ module.exports = React.createClass({
     componentWillReceiveProps(nextProps, nextContext) {
         this.setState({
             value: nextProps.value,
-            stringValue: nextProps.value.toString(),
+            stringValue: (nextProps.disabled) ? "- - -" : nextProps.value.toString(),
         });
     },
 
@@ -106,8 +106,9 @@ module.exports = React.createClass({
             <div style={styles.sliderWrapper}>
                 <Slider
                     style={styles.slider}
-                    value={this.props.transform(this.state.value)}
+                    value={this.state.value !== null && this.props.transform(this.state.value)}
                     onChange={handlers.slider}
+                    disabled={this.props.disabled}
                     ref='slider'
                 />
             </div>

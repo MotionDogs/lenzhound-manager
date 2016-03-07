@@ -2,6 +2,8 @@ const serialport = require('serialport');
 const SerialPort = serialport.SerialPort;
 const Promise = require('promise');
 const events = require('./events');
+const config = require('./config');
+const https = require('https');
 
 var buffer = "";
 var port = null;
@@ -47,8 +49,6 @@ const connect = (p) => {
 
             var match;
             while (match = lineTest.exec(buffer)) {
-                console.log(match[1]);
-
                 var outputVar = /([a-zA-Z])=([0-9]+)/;
 
                 if (outputVar.test(match[1])) {
@@ -102,10 +102,16 @@ module.exports = {
     _getApiPromise(key, callback) {
         return new Promise((ok, err) => {
             this.command(key);
-            setTimeout(() => err("timeout"), 100);
-            events.once(`RESPONSE_OUTPUT:${key}`, (v) => {
+
+            const cb = (v) => {
                 ok(callback(v));
-            });
+            };
+
+            events.once(`RESPONSE_OUTPUT:${key}`, cb);
+            setTimeout(() => {
+                err("timeout");
+                events.off(`RESPONSE_OUTPUT:${key}`, cb);
+            }, 100);
         });
     },
 
@@ -133,13 +139,85 @@ module.exports = {
         return this._getApiPromise(types.GET_ACCEL, v => parseInt(v));
     },
 
+    getTxrVersion() {
+        return this._getApiPromise(types.GET_ROLE, r => parseInt(r)).then(role => {
+            if (role === 0) {
+                return this._getApiPromise(types.GET_VERSION, v => v);
+            } else if (role === 1) {
+                return this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
+            } else {
+                throw new Error("panic");
+            }
+        });
+    },
+
     command(cmd) {
         if (port) {
-            console.log(cmd);
             port.write(cmd + '\n', (err, results) => {
                 if (err) throw err;
             });
         }
+    },
+
+    getLaterTxrVersionIfExists() {
+        return this.getTxrVersion().then(v => new Promise((ok,err) => {
+            var splitVersion = v.split('.');
+            var oldVersion = {
+                major: parseInt(splitVersion[0]),
+                minor: parseInt(splitVersion[1]),
+            };
+
+            var options = {
+                host: config.githubBinDirectoryHost,
+                path: config.githubBinDirectoryPath,
+                headers: {
+                    "User-Agent": "Lenzhound-Manager-1.0",
+                },
+                rejectUnauthorized: false,
+            };
+            https.get(options, res => {
+                if (res.statusCode !== 200) {
+                    err(res);
+                }
+
+                var body = "";
+
+                res.on('error', e => {
+                    err(e);
+                });
+
+                res.on('data', chunk => {
+                    body += chunk;
+                });
+
+                res.on('end', () => {
+                    ok([oldVersion, JSON.parse(body)]);
+                });
+            });
+        })).then(([old, res]) => {
+            var versionMatch = /txr\.ino\.leonardo([0-9])+\.([0-9]+)\.hex/i;
+            var versions = res.filter(x => versionMatch.test(x.name)).map(x => {
+                var match = versionMatch.exec(x.name);
+                return {
+                    major: parseInt(match[1]),
+                    minor: parseInt(match[2]),
+                    url: x.download_url
+                };
+            });
+
+            versions = versions.concat([{major:2000, minor:0, url:'dummy'}]);
+
+            versions.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
+            var latest = versions[0];
+
+            console.log(versions);
+
+            if (((latest.major - old.major) || (latest.minor - old.minor)) > 0) {
+                return latest;
+            } else {
+                return null;
+            }
+        });
     },
 
     types
