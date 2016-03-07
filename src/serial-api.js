@@ -78,7 +78,8 @@ const connect = (p) => {
 var interval = setInterval(() => {
     serialport.list((e, ports) => {
         if (e) throw e;
-        var arduinos = ports.filter(p => /VID_2341.*PID_8036/i.test(p.pnpId));
+        var arduinos = ports.filter(p => /VID_2341.*PID_8036/i.test(p.pnpId) || 
+            (p.vendorId === '0x2341' && p.productId === '0x8036'));
 
         if (arduinos.length == 1) {
             if (!port) {
