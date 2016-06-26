@@ -55,7 +55,7 @@ module.exports = React.createClass({
                 {profiles.map(p => (<LensProfile {...p} />))}
                 <div style={styles.createButtonWrapper}>
                     <RaisedButton
-                        label="Create a Lens Profile"
+                        label="Create a Lenzhound Profile"
                         primary={true}
                         onMouseDown={this.modalOpen} />
                 </div>
