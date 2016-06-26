@@ -1,6 +1,5 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
-const regression = require('regression');
 const rationalRegression = require('./rational-regression');
 
 module.exports = React.createClass({

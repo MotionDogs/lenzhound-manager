@@ -1,12 +1,17 @@
-var util = require('util');
-var https = require('https');
 
-https.get({
-    host: 'api.github.com',
-    path: '/repos/SquareWave/Lenzhound-1.x/contents/bin',
-    headers: {
-        'User-Agent': 'Lenzhound'
-    },
-}, (res) => {
-    console.log(util.inspect(res.statusCode));
-});
+var sp = require('serialport');
+
+function listPorts() {
+  sp.list(function(err, ports) {
+    if (err) {
+      console.error('Error listing ports', err);
+    } else {
+      ports.forEach(function(port) {
+        console.log(port.comName + '\t' + (port.pnpId || '') + '\t' + (port.manufacturer || ''));
+      });
+    }
+  });
+};
+
+listPorts();
+console.log(process.version);
