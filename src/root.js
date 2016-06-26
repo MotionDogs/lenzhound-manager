@@ -5,6 +5,7 @@ const LeftNav = require('material-ui/lib/left-nav');
 const MenuItem = require('material-ui/lib/menus/menu-item');
 const TxrPaw = require('./txr-paw');
 const TxrSettings = require('./txr-settings');
+const TxrProfileList = require('./txr-profile-list');
 const ThemeManager = require('material-ui/lib/styles/theme-manager');
 const Theme = require('./theme');
 const NavigationClose = require('material-ui/lib/svg-icons/navigation/close');
@@ -49,7 +50,7 @@ var Root = React.createClass({
                 height: '100%',
             },
             innerDiv: {
-                background: '#eee',
+                background: 'linear-gradient(rgb(219, 224, 255), rgb(210, 230, 229))',
                 width: '100%',
                 height: '100%',
                 opacity: pluggedIn ? 1 : 0,
@@ -77,19 +78,29 @@ var Root = React.createClass({
                 height: '100%'
             },
             settingsWrapper: {
+            },
+            leftSection: {
                 position: 'relative',
                 right: pluggedIn ? 0 : 500,
                 transition: '0.5s',
                 width: '40%',
                 float: 'left',
             },
+            profileList: {
+                
+            },
         };
 
         return (
         <div style={styles.rootDiv}>
             <div style={styles.innerDiv}>
-                <div style={styles.settingsWrapper}>
-                    <TxrSettings {...this.props.settings}/>
+                <div style={styles.leftSection}>
+                    <div style={styles.settingsWrapper}>
+                        <TxrSettings {...this.props.settings}/>
+                    </div>
+                    <div style={styles.profileList}>
+                        <TxrProfileList profiles={this.props.profiles}/>
+                    </div>
                 </div>
                 <div style={styles.pawWrapper}>
                     <TxrPaw style={styles.txrPaw} {...this.props.paw}/>

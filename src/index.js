@@ -16,7 +16,7 @@ const poll = (period, lambda) => {
 
 var pollings = [];
 
-events.on("SERIAL_PORT_OPEN", () => {
+events.on(events.SERIAL_PORT_OPEN, () => {
     const pollForSetting = (promise, setting) => {
         return poll(1000, stop => promise().then(result => {
             root.setProps({
@@ -41,27 +41,27 @@ events.on("SERIAL_PORT_OPEN", () => {
     api.getLaterTxrVersionIfExists().then(v => console.log(v));
 });
 
-events.on("SERIAL_PORT_CLOSE", () => {
+events.on(events.SERIAL_PORT_CLOSE, () => {
     pollings.forEach(p => clearInterval(p));
     root.setProps({pluggedIn: false});
 });
 
-events.on("SET_START_IN_CAL", (startInCal) => {
+events.on(events.SET_START_IN_CAL, (startInCal) => {
     root.setProps({settings:{startInCal}});
     api.setStartInCal(startInCal);
 });
 
-events.on("SET_MAX_VELOCITY", (maxSpeed) => {
+events.on(events.SET_MAX_VELOCITY, (maxSpeed) => {
     root.setProps({settings:{maxSpeed}});
     api.setMaxSpeed(maxSpeed);
 });
 
-events.on("SET_ACCEL", (accel) => {
+events.on(events.SET_ACCEL, (accel) => {
     root.setProps({settings:{accel}});
     api.setAccel(accel);
 });
 
-events.on("RESPONSE_OUTPUT:*", (val) => {
+events.on(events.RESPONSE_OUTPUT("*"), (val) => {
 });
 
-root.setProps({pluggedIn:false});
+root.setProps({pluggedIn:false, profiles: []});

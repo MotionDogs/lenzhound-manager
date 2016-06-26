@@ -8,10 +8,10 @@ module.exports = {
   zIndex: zIndex,
   fontFamily: 'Roboto, sans-serif',
   palette: {
-    primary1Color: Colors.indigo500,
-    primary2Color: Colors.indigo700,
+    primary1Color: Colors.pink500,
+    primary2Color: Colors.pink700,
     primary3Color: Colors.lightBlack,
-    accent1Color: Colors.tealA400,
+    accent1Color: Colors.blueA200,
     accent2Color: Colors.grey100,
     accent3Color: Colors.grey500,
     textColor: Colors.darkBlack,
@@ -19,6 +19,6 @@ module.exports = {
     canvasColor: Colors.white,
     borderColor: Colors.grey300,
     disabledColor: ColorManipulator.fade(Colors.darkBlack, 0.3),
-    pickerHeaderColor: Colors.indigo500,
+    pickerHeaderColor: Colors.pink500,
   }
 };
