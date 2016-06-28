@@ -61,16 +61,8 @@ module.exports = function (vs) {
 
     var b = [xsSqy,ysSqx,xys];
 
-    console.log(det(A));
-
-    // Ax = b -> x = A^-1b
     var AInv = inv(A);
-
-    console.log(AInv);
-
     var x = mul(AInv, b);
-
-    console.log(x);
 
     return x;
 }

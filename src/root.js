@@ -5,7 +5,6 @@ const MenuItem = require('material-ui/lib/menus/menu-item');
 const ThemeManager = require('material-ui/lib/styles/theme-manager');
 const FileUploadIcon = require('material-ui/lib/svg-icons/file/file-upload');
 const IconButton = require('material-ui/lib/icon-button');
-const Radium = require('radium');
 const React = require('react');
 
 const resources = require('./resources');
@@ -14,7 +13,7 @@ const TxrSettings = require('./txr-settings');
 const TxrProfileList = require('./txr-profile-list');
 const Theme = require('./theme');
 
-var Root = Radium(React.createClass({
+var Root = React.createClass({
 
     propTypes: {
         settings: React.PropTypes.object,
@@ -40,7 +39,9 @@ var Root = Radium(React.createClass({
     render() {
         const onClicks = {
             appBarLeftIcon: () => {this.setState({navOpen: true})},
-            uploadIcon: () => {events.emit("UPLOAD_TO_TXR", this.props.newVersion)},
+            uploadIcon: () => {
+                events.emit(events.UPLOAD_TO_TXR, this.props.newVersion);
+            },
         };
 
         const pawPluggedIn = this.props.pawPluggedIn;
@@ -55,7 +56,8 @@ var Root = Radium(React.createClass({
                 height: '100%',
             },
             innerDiv: {
-                background: 'linear-gradient(rgb(219, 224, 255), rgb(210, 230, 229))',
+                background:
+                    'linear-gradient(rgb(219, 224, 255), rgb(210, 230, 229))',
                 width: '100%',
                 height: '100%',
                 opacity: pluggedIn ? 1 : 0,
@@ -101,11 +103,11 @@ var Root = Radium(React.createClass({
                 display: this.props.newVersion ? 'block' : 'none',
             },
             uploadIcon: {
-                fill: Theme.palette.primary1Color,
+                fill: Theme.palette.accent1Color,
                 marginBottom: -6,
             },
             uploadCopy: {
-                color: Theme.palette.primary1Color,
+                color: Theme.palette.accent1Color,
                 fontFamily: 'Roboto',
             },
             dogboneWrapper: {
@@ -115,9 +117,14 @@ var Root = Radium(React.createClass({
                 width: '60%',
                 float: 'left',
             },
-            profileList: {
-            },
+            profileList: {},
         };
+
+        // var dogbone = (
+        //     <div style={styles.dogboneWrapper}>
+        //         <img src='url(content/lenzhound-dogbone.svg)' />
+        //     </div>
+        // );
 
         return (
         <div style={styles.rootDiv}>
@@ -133,18 +140,17 @@ var Root = Radium(React.createClass({
                 <div style={styles.pawWrapper}>
                     <TxrPaw style={styles.txrPaw} {...this.props.paw}/>
                 </div>
-                <div style={styles.dogboneWrapper}>
-                    <img src='url(content/lenzhound-dogbone.svg)' />
-                </div>
                 <div style={styles.uploadWrapper} onClick={onClicks.uploadIcon}>
                     <FileUploadIcon style={styles.uploadIcon} />
-                    <span style={styles.uploadCopy}>{resources.uploadFirmware}</span>
+                    <span style={styles.uploadCopy}>
+                        {resources.uploadFirmware}
+                    </span>
                 </div>
             </div>
         </div>
         );
     }
-}));
+});
 
 var props = {};
 module.exports = {

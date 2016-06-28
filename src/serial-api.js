@@ -59,7 +59,7 @@ const connect = (p) => {
                     var k = ms[1];
                     var v = ms[2];
 
-                    events.emit("RESPONSE_OUTPUT:" + k, v);
+                    events.emit(events.RESPONSE_OUTPUT(k), v);
                 }
 
                 buffer = buffer.slice(match[0].length);
@@ -129,7 +129,8 @@ module.exports = {
     },
 
     getStartInCal() {
-        return this._getApiPromise(types.GET_START_STATE, v => (v === "0") ? false : true);
+        return this._getApiPromise(types.GET_START_STATE,
+            v => (v === "0") ? false : true);
     },
 
     setMaxSpeed(val) {
@@ -149,7 +150,8 @@ module.exports = {
     },
 
     getTxrVersion() {
-        return this._getApiPromise(types.GET_ROLE, r => parseInt(r)).then(role => {
+        return this._getApiPromise(types.GET_ROLE, r => parseInt(r)).then(
+        role => {
             if (role === 0) {
                 return this._getApiPromise(types.GET_VERSION, v => v);
             } else if (role === 1) {
@@ -191,7 +193,7 @@ module.exports = {
         return this.getTxrVersion().then(v => new Promise((ok,err) => {
             var splitVersion = v.split('.');
             var oldVersion = {
-                major: parseInt(splitVersion[0]) - 1,
+                major: parseInt(splitVersion[0]),
                 minor: parseInt(splitVersion[1]),
             };
 
@@ -285,7 +287,8 @@ module.exports = {
                         });
                     });
                 }).then(contents => {
-                    return Promise.denodeify(fs.writeFile)(filePath, contents, 'utf8').then(() => {
+                    var writeFile = Promise.denodeify(fs.writeFile)
+                    return writeFile(filePath, contents, 'utf8').then(() => {
                         return latest;
                     });
                 });
