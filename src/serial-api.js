@@ -157,8 +157,14 @@ module.exports = {
             } else if (role === 1) {
                 return this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
             } else {
-                throw new Error("panic");
+                return new Promise((ok, err) => {
+                    ok("0.0");
+                });
             }
+        }, err => {
+            return new Promise((ok, err) => {
+                ok("0.0");
+            });
         });
     },
 
