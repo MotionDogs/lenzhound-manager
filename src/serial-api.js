@@ -37,7 +37,7 @@ const lineTest = /^([^\n]*)\n/;
 
 const connect = (p) => {
     port = new SerialPort(p.comName, {
-        baudRate: 57600
+        baudRate: 9600
     });
 
     port.on('open', (err) => {
@@ -71,7 +71,7 @@ const connect = (p) => {
     port.on("error", (err) => {
         if (err) {
             port = null;
-            throw err;
+            // throw err;
         }
 
         console.log("port error")
@@ -80,10 +80,10 @@ const connect = (p) => {
 
 var interval = setInterval(() => {
     serialport.list((e, ports) => {
-        if (e) throw e;
-        var arduinos = ports.filter(p => /VID_2341.*PID_8036/i.test(p.pnpId) ||
-            (p.vendorId === '0x2341' && p.productId === '0x8036'));
-
+        if (!ports) throw e;
+        var arduinos = ports.filter(p =>
+            /VID_2341.*PID_8036/i.test(p.pnpId) ||
+            (/2341/i.test(p.vendorId) && /8036/i.test(p.productId)));
         if (arduinos.length == 1) {
             if (!port) {
                 connect(arduinos[0]);

@@ -11,6 +11,7 @@ const React = require('react');
 const resources = require('./resources');
 const TxrPaw = require('./txr-paw');
 const TxrSettings = require('./txr-settings');
+const TxrProfileList = require('./txr-profile-list');
 const Theme = require('./theme');
 
 var Root = Radium(React.createClass({
@@ -54,7 +55,7 @@ var Root = Radium(React.createClass({
                 height: '100%',
             },
             innerDiv: {
-                background: '#eee',
+                background: 'linear-gradient(rgb(219, 224, 255), rgb(210, 230, 229))',
                 width: '100%',
                 height: '100%',
                 opacity: pluggedIn ? 1 : 0,
@@ -82,6 +83,8 @@ var Root = Radium(React.createClass({
                 height: '100%'
             },
             settingsWrapper: {
+            },
+            leftSection: {
                 position: 'relative',
                 right: pawPluggedIn ? 0 : 500,
                 transition: '0.5s',
@@ -112,13 +115,20 @@ var Root = Radium(React.createClass({
                 width: '60%',
                 float: 'left',
             },
+            profileList: {
+            },
         };
 
         return (
         <div style={styles.rootDiv}>
             <div style={styles.innerDiv}>
-                <div style={styles.settingsWrapper}>
-                    <TxrSettings {...this.props.settings}/>
+                <div style={styles.leftSection}>
+                    <div style={styles.settingsWrapper}>
+                        <TxrSettings {...this.props.settings}/>
+                    </div>
+                    <div style={styles.profileList}>
+                        <TxrProfileList profiles={this.props.profiles}/>
+                    </div>
                 </div>
                 <div style={styles.pawWrapper}>
                     <TxrPaw style={styles.txrPaw} {...this.props.paw}/>
