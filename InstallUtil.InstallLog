@@ -1,0 +1,129 @@
+﻿
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.InstallLog.
+
+The Install phase completed successfully, and the Commit phase is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.InstallLog.
+
+The Commit phase completed successfully.
+
+The transacted install has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Install phase completed successfully, and the Commit phase is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Commit phase completed successfully.
+
+The transacted install has completed.
+
+
+The uninstall is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.InstallLog.
+
+The uninstall has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.InstallLog.
+
+The Install phase completed successfully, and the Commit phase is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Scheduling\Mindbody\WorkerRole\SchedulingNotifications\bin\Debug\mindbody.WorkerRole.SchedulingNotifications.InstallLog.
+
+The Commit phase completed successfully.
+
+The transacted install has completed.
+
+
+The uninstall is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The uninstall has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Install phase completed successfully, and the Commit phase is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Commit phase completed successfully.
+
+The transacted install has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+An exception occurred during the Install phase.
+System.ComponentModel.Win32Exception: The specified service already exists
+
+The Rollback phase of the installation is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Rollback phase completed successfully.
+
+The transacted install has completed.
+
+
+The uninstall is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The uninstall has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Install phase completed successfully, and the Commit phase is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Commit phase completed successfully.
+
+The transacted install has completed.
+
+
+The uninstall is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The uninstall has completed.
+
+Running a transacted installation.
+
+Beginning the Install phase of the installation.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Install phase completed successfully, and the Commit phase is beginning.
+See the contents of the log file for the C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.exe assembly's progress.
+The file is located at C:\IIS\wwwroot\Services\Development\Notifications\Mindbody\WorkerRole\Notifications\bin\Debug\mindbody.WorkerRole.Notifications.InstallLog.
+
+The Commit phase completed successfully.
+
+The transacted install has completed.

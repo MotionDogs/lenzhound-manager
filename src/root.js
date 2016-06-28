@@ -1,17 +1,19 @@
-const React = require('react');
-const resources = require('./resources');
+const _ = require('lodash');
 const AppBar = require('material-ui/lib/app-bar');
 const LeftNav = require('material-ui/lib/left-nav');
 const MenuItem = require('material-ui/lib/menus/menu-item');
+const ThemeManager = require('material-ui/lib/styles/theme-manager');
+const FileUploadIcon = require('material-ui/lib/svg-icons/file/file-upload');
+const IconButton = require('material-ui/lib/icon-button');
+const Radium = require('radium');
+const React = require('react');
+
+const resources = require('./resources');
 const TxrPaw = require('./txr-paw');
 const TxrSettings = require('./txr-settings');
-const ThemeManager = require('material-ui/lib/styles/theme-manager');
 const Theme = require('./theme');
-const NavigationClose = require('material-ui/lib/svg-icons/navigation/close');
-const IconButton = require('material-ui/lib/icon-button');
-const _ = require('lodash');
 
-var Root = React.createClass({
+var Root = Radium(React.createClass({
 
     propTypes: {
         settings: React.PropTypes.object,
@@ -36,10 +38,13 @@ var Root = React.createClass({
 
     render() {
         const onClicks = {
-            appBarLeftIcon: () => {this.setState({navOpen: true})}
+            appBarLeftIcon: () => {this.setState({navOpen: true})},
+            uploadIcon: () => {events.emit("UPLOAD_TO_TXR", this.props.newVersion)},
         };
 
-        const pluggedIn = this.props.pluggedIn;
+        const pawPluggedIn = this.props.pawPluggedIn;
+        const dogbonePluggedIn = this.props.dogbonePluggedIn;
+        const pluggedIn = pawPluggedIn || dogbonePluggedIn;
 
         const styles = {
             rootDiv: {
@@ -66,7 +71,7 @@ var Root = React.createClass({
             },
             pawWrapper: {
                 position: 'relative',
-                left: pluggedIn ? 0 : 500,
+                left: pawPluggedIn ? 0 : 500,
                 transition: '0.5s',
                 width: '60%',
                 float: 'left',
@@ -78,9 +83,33 @@ var Root = React.createClass({
             },
             settingsWrapper: {
                 position: 'relative',
-                right: pluggedIn ? 0 : 500,
+                right: pawPluggedIn ? 0 : 500,
                 transition: '0.5s',
                 width: '40%',
+                float: 'left',
+            },
+            uploadWrapper: {
+                position: 'absolute',
+                left: 0,
+                bottom: 0,
+                padding: 8,
+                margin: 8,
+                cursor: 'pointer',
+                display: this.props.newVersion ? 'block' : 'none',
+            },
+            uploadIcon: {
+                fill: Theme.palette.primary1Color,
+                marginBottom: -6,
+            },
+            uploadCopy: {
+                color: Theme.palette.primary1Color,
+                fontFamily: 'Roboto',
+            },
+            dogboneWrapper: {
+                position: 'relative',
+                left: dogbonePluggedIn ? 0 : 500,
+                transition: '0.5s',
+                width: '60%',
                 float: 'left',
             },
         };
@@ -94,11 +123,18 @@ var Root = React.createClass({
                 <div style={styles.pawWrapper}>
                     <TxrPaw style={styles.txrPaw} {...this.props.paw}/>
                 </div>
+                <div style={styles.dogboneWrapper}>
+                    <img src='url(content/lenzhound-dogbone.svg)' />
+                </div>
+                <div style={styles.uploadWrapper} onClick={onClicks.uploadIcon}>
+                    <FileUploadIcon style={styles.uploadIcon} />
+                    <span style={styles.uploadCopy}>{resources.uploadFirmware}</span>
+                </div>
             </div>
         </div>
         );
     }
-});
+}));
 
 var props = {};
 module.exports = {

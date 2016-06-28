@@ -117,6 +117,7 @@ module.exports = React.createClass({
                 inputStyle={styles.fieldInput}
                 value={this.state.stringValue}
                 onChange={handlers.field}
+                disabled={this.props.disabled}
             />
         </div>
         );

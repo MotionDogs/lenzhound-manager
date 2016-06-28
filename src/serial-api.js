@@ -4,6 +4,9 @@ const Promise = require('promise');
 const events = require('./events');
 const config = require('./config');
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
+const Avrgirl = require('../avrgirl');
 
 var buffer = "";
 var port = null;
@@ -49,7 +52,7 @@ const connect = (p) => {
 
             var match;
             while (match = lineTest.exec(buffer)) {
-                var outputVar = /([a-zA-Z])=([0-9]+)/;
+                var outputVar = /([a-zA-Z])=(.+)/;
 
                 if (outputVar.test(match[1])) {
                     var ms = outputVar.exec(match[1]);
@@ -78,7 +81,7 @@ const connect = (p) => {
 var interval = setInterval(() => {
     serialport.list((e, ports) => {
         if (e) throw e;
-        var arduinos = ports.filter(p => /VID_2341.*PID_8036/i.test(p.pnpId) || 
+        var arduinos = ports.filter(p => /VID_2341.*PID_8036/i.test(p.pnpId) ||
             (p.vendorId === '0x2341' && p.productId === '0x8036'));
 
         if (arduinos.length == 1) {
@@ -114,6 +117,11 @@ module.exports = {
                 events.off(`RESPONSE_OUTPUT:${key}`, cb);
             }, 100);
         });
+    },
+
+    closePort() {
+        port.close();
+        port = null;
     },
 
     setStartInCal(val) {
@@ -160,11 +168,30 @@ module.exports = {
         }
     },
 
+    flashTxr(url) {
+        var parsed = path.parse(url);
+        var filepath = './downloads/' + parsed.base;
+
+        var avrgirl = new Avrgirl({board: 'leonardo', port: port.comName});
+        port.close();
+        port = null;
+
+        return new Promise((ok,err) => {
+            avrgirl.flash(filepath, e => {
+                if (e) {
+                    err(e);
+                } else {
+                    ok();
+                }
+            });
+        });
+    },
+
     getLaterTxrVersionIfExists() {
         return this.getTxrVersion().then(v => new Promise((ok,err) => {
             var splitVersion = v.split('.');
             var oldVersion = {
-                major: parseInt(splitVersion[0]),
+                major: parseInt(splitVersion[0]) - 1,
                 minor: parseInt(splitVersion[1]),
             };
 
@@ -196,7 +223,7 @@ module.exports = {
                 });
             });
         })).then(([old, res]) => {
-            var versionMatch = /txr\.ino\.leonardo([0-9])+\.([0-9]+)\.hex/i;
+            var versionMatch = /txr\.ino\.leonardo-([0-9])+\.([0-9]+)\.hex/i;
             var versions = res.filter(x => versionMatch.test(x.name)).map(x => {
                 var match = versionMatch.exec(x.name);
                 return {
@@ -206,18 +233,63 @@ module.exports = {
                 };
             });
 
-            versions = versions.concat([{major:2000, minor:0, url:'dummy'}]);
-
             versions.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
             var latest = versions[0];
-
-            console.log(versions);
 
             if (((latest.major - old.major) || (latest.minor - old.minor)) > 0) {
                 return latest;
             } else {
                 return null;
             }
+        }).then(latest => {
+            if (!latest) { return latest; }
+
+            return Promise.denodeify(fs.stat)('./downloads').then(s => {
+                if (!s.isDirectory()) {
+                    throw new Error('panic');
+                }
+
+                return latest;
+            }, err => {
+                fs.mkdir('./downloads');
+                return latest;
+            });
+        }).then(latest => {
+            var parsed = path.parse(latest.url);
+            var filePath = './downloads/' + parsed.base;
+
+            return Promise.denodeify(fs.stat)(filePath).then(f => {
+                if (!f.isFile()) {
+                    throw new Error('panic');
+                }
+
+                return latest;
+            }, err => {
+                return new Promise((ok,err) => {
+                    https.get(latest.url, res => {
+                        if (res.statusCode !== 200) {
+                            throw new Error('panic');
+                        }
+
+                        var body = "";
+                        res.on('data', chunk => {
+                            body += chunk;
+                        });
+
+                        res.on('end', () => {
+                            ok(body);
+                        });
+
+                        res.on('error', (e) => {
+                            err(e);
+                        });
+                    });
+                }).then(contents => {
+                    return Promise.denodeify(fs.writeFile)(filePath, contents, 'utf8').then(() => {
+                        return latest;
+                    });
+                });
+            });
         });
     },
 

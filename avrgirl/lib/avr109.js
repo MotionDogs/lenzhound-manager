@@ -52,7 +52,7 @@ Avr109.prototype._upload = function(file, callback) {
           _this.debug(color('flash complete.'));
 
           // Can't close the serialport on avr109 boards >> node-serialport/issues/415
-          // _this.serialPort.close();
+          _this.connection.serialPort.close();
 
           return callback(error);
         });
@@ -129,6 +129,7 @@ Avr109.prototype._reset = function(callback) {
   function(error) {
     // some leos are just plain tardy
     setTimeout(function() {
+      tempSerialPort.close();
       return callback(error);
     }, delay);
   });

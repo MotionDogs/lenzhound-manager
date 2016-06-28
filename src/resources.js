@@ -1,3 +1,3 @@
 module.exports = {
-    appTitle: "lenzhound"
+    uploadFirmware: "upload firmware",
 };

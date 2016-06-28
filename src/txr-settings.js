@@ -44,7 +44,7 @@ module.exports = React.createClass({
             <SliderControl
                 title="Max speed"
                 disabled={this.props.maxSpeed === null}
-                value={clamp(this.props.maxSpeed || 0, 0, 32768)}
+                value={clamp(this.props.maxSpeed || 0, 1, 32768)}
                 transform={(v) => v && logb(MAX_MAX_SPEED, v)}
                 invTransform={(v) => powRounded(MAX_MAX_SPEED, v)}
                 onChange={callbacks.changeMaxSpeed}
@@ -52,8 +52,8 @@ module.exports = React.createClass({
             <SliderControl
                 title="Acceleration"
                 disabled={this.props.accel === null}
-                value={clamp(this.props.accel || 0, 0, 32)}
-                transform={(v) => v / MAX_ACCEL}
+                value={clamp(this.props.accel || 0, 1, MAX_ACCEL)}
+                transform={(v) => (v + 1) / MAX_ACCEL}
                 invTransform={(v) => Math.round(v * MAX_ACCEL)}
                 onChange={callbacks.changeAccel}
             />

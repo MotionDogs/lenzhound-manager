@@ -38,7 +38,13 @@ events.on("SERIAL_PORT_OPEN", () => {
     pollings.push(pollForSetting(() => api.getMaxSpeed(), "maxSpeed"));
     pollings.push(pollForSetting(() => api.getAccel(), "accel"));
 
-    api.getLaterTxrVersionIfExists().then(v => console.log(v));
+    api.getLaterTxrVersionIfExists().then(v => {
+        if (v) {
+            root.setProps({newVersion: v});
+        }  else {
+            root.setProps({newVersion: null});
+        }
+    });
 });
 
 events.on("SERIAL_PORT_CLOSE", () => {
@@ -59,6 +65,10 @@ events.on("SET_MAX_VELOCITY", (maxSpeed) => {
 events.on("SET_ACCEL", (accel) => {
     root.setProps({settings:{accel}});
     api.setAccel(accel);
+});
+
+events.on("UPLOAD_TO_TXR", (version) => {
+    api.flashTxr(version.url);
 });
 
 events.on("RESPONSE_OUTPUT:*", (val) => {
