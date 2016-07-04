@@ -3,7 +3,9 @@ const ReactDOM = require('react-dom');
 const root = require('./lib/root');
 const events = require('./lib/events');
 const api = require('./lib/serial-api');
+const remoteFileApi = require('./lib/remote-file-api');
 const Promise = require('promise');
+const logError = require('./lib/error-logger').logError;
 
 const poll = (period, lambda) => {
     var interval = setInterval(() => {
@@ -23,33 +25,53 @@ events.on(events.SERIAL_PORT_OPEN, () => {
                 settings:{[setting]: result},
             });
             stop();
-        }, err => {}));
+        }));
     };
 
-    root.setProps({
-        pawPluggedIn: true,
-        settings: {
-            startInCal: null,
-            maxSpeed: null,
-            accel: null,
-        }
-    });
-    pollings.push(pollForSetting(() => api.getStartInCal(), "startInCal"));
-    pollings.push(pollForSetting(() => api.getMaxSpeed(), "maxSpeed"));
-    pollings.push(pollForSetting(() => api.getAccel(), "accel"));
+    poll(1000, stop => api.getRole().then(result => {
+        if (result === "PAW") {
+            root.setProps({
+                unknownVersion: false,
+                pawPluggedIn: true,
+                settings: {
+                    startInCal: null,
+                    maxSpeed: null,
+                    accel: null,
+                }
+            });
+            pollings.push(pollForSetting(() => api.getStartInCal(), "startInCal"));
+            pollings.push(pollForSetting(() => api.getMaxSpeed(), "maxSpeed"));
+            pollings.push(pollForSetting(() => api.getAccel(), "accel"));
 
-    api.getLaterTxrVersionIfExists().then(v => {
-        if (v) {
-            root.setProps({newVersion: v});
-        }  else {
-            root.setProps({newVersion: null});
+            remoteFileApi.getLaterTxrVersionIfExists().then(v => {
+                root.setProps({newTxrVersion: v || null});
+            }, logError);
+        } else if (result === "DOGBONE") {
+            remoteFileApi.getLaterRxrVersionIfExists().then(v => {
+                root.setProps({newRxrVersion: v || null});
+            }, logError);
+
+            root.setProps({
+                unknownVersion: false,
+                dogbonePluggedIn: true,
+                settings: {
+                    startInCal: null,
+                    maxSpeed: null,
+                    accel: null,
+                }
+            });
+        } else {
+            root.setProps({unknownVersion: true});
         }
-    });
+        stop();
+    }, err => {
+        root.setProps({unknownVersion: true});
+    }));
 });
 
 events.on(events.SERIAL_PORT_CLOSE, () => {
     pollings.forEach(p => clearInterval(p));
-    root.setProps({pawPluggedIn: false});
+    root.setProps({pawPluggedIn: false, dogbonePluggedIn: false});
 });
 
 events.on(events.SET_START_IN_CAL, (startInCal) => {
@@ -68,10 +90,34 @@ events.on(events.SET_ACCEL, (accel) => {
 });
 
 events.on(events.UPLOAD_TO_TXR, (version) => {
-    api.flashTxr(version.url);
+    api.flashBoard(version.url);
+});
+
+events.on(events.FORCE_UPLOAD_TXR, () => {
+    api.disableAutoConnect();
+    root.setProps({loading: true});
+    remoteFileApi.getLaterTxrVersionIfExists().then(version => {
+        api.flashBoard(version.url).then(() => {
+            root.setProps({loading: false});
+            api.enableAutoConnect();
+        });;
+    });
+});
+
+events.on(events.FORCE_UPLOAD_RXR, () => {
+    api.disableAutoConnect();
+    root.setProps({loading: true});
+    remoteFileApi.getLaterRxrVersionIfExists().then(version => {
+        api.flashBoard(version.url).then(() => {
+            root.setProps({loading: false});
+            api.enableAutoConnect();
+        });
+    });
 });
 
 events.on(events.RESPONSE_OUTPUT("*"), (val) => {
 });
 
 root.setProps({pawPluggedIn:false, profiles: []});
+
+api.enableAutoConnect();

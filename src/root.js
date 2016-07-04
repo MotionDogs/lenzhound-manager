@@ -6,6 +6,8 @@ const ThemeManager = require('material-ui/lib/styles/theme-manager');
 const FileUploadIcon = require('material-ui/lib/svg-icons/file/file-upload');
 const IconButton = require('material-ui/lib/icon-button');
 const React = require('react');
+const RaisedButton = require('material-ui/lib/raised-button');
+const CircularProgress = require('material-ui/lib/circular-progress');
 
 const resources = require('./resources');
 const TxrPaw = require('./txr-paw');
@@ -40,24 +42,39 @@ var Root = React.createClass({
         const onClicks = {
             appBarLeftIcon: () => {this.setState({navOpen: true})},
             uploadIcon: () => {
-                events.emit(events.UPLOAD_TO_TXR, this.props.newVersion);
+                if (pawPluggedIn) {
+                    events.emit(events.UPLOAD_TO_TXR, this.props.newTxrVersion);
+                } else if (dogbonePluggedIn) {
+                    events.emit(events.UPLOAD_TO_RXR, this.props.newRxrVersion);
+                } else {
+                    throw new Error("Clicked upload without being plugged in.")
+                }
+            },
+            uploadTxr: () => {
+                events.emit(events.FORCE_UPLOAD_TXR);
+            },
+            uploadRxr: () => {
+                events.emit(events.FORCE_UPLOAD_RXR);
             },
         };
 
         const pawPluggedIn = this.props.pawPluggedIn;
         const dogbonePluggedIn = this.props.dogbonePluggedIn;
-        const pluggedIn = pawPluggedIn || dogbonePluggedIn;
+        const unknownVersion = this.props.unknownVersion;
+        const pluggedIn = pawPluggedIn || dogbonePluggedIn || unknownVersion;
+        const newVersion = this.props.newTxrVersion || this.props.newRxrVersion;
+        const loading = this.props.loading;
 
         const styles = {
             rootDiv: {
-                background: 'url(content/lenzhound-bg.svg)',
+                background: unknownVersion ?
+                    '' : 'url(content/lenzhound-bg.svg)',
                 position: 'absolute',
                 width: '100%',
                 height: '100%',
             },
             innerDiv: {
-                background:
-                    'linear-gradient(rgb(219, 224, 255), rgb(210, 230, 229))',
+                background: 'rgb(219, 224, 255)',
                 width: '100%',
                 height: '100%',
                 opacity: pluggedIn ? 1 : 0,
@@ -74,7 +91,7 @@ var Root = React.createClass({
             },
             pawWrapper: {
                 position: 'relative',
-                left: pawPluggedIn ? 0 : 500,
+                left: pawPluggedIn ? 0 : 1000,
                 transition: '0.5s',
                 width: '60%',
                 float: 'left',
@@ -88,7 +105,7 @@ var Root = React.createClass({
             },
             leftSection: {
                 position: 'relative',
-                right: pawPluggedIn ? 0 : 500,
+                right: pluggedIn ? 0 : 1000,
                 transition: '0.5s',
                 width: '40%',
                 float: 'left',
@@ -100,7 +117,7 @@ var Root = React.createClass({
                 padding: 8,
                 margin: 8,
                 cursor: 'pointer',
-                display: this.props.newVersion ? 'block' : 'none',
+                display: newVersion ? 'block' : 'none',
             },
             uploadIcon: {
                 fill: Theme.palette.accent1Color,
@@ -112,34 +129,101 @@ var Root = React.createClass({
             },
             dogboneWrapper: {
                 position: 'relative',
-                left: dogbonePluggedIn ? 0 : 500,
+                left: dogbonePluggedIn ? 0 : 1000,
                 transition: '0.5s',
                 width: '60%',
                 float: 'left',
             },
+            dogbone: {
+                marginLeft: '24%',
+            },
             profileList: {},
+            unknownVersionWrapperOuter: {
+                width: '100%',
+                height: '100%'
+            },
+            unknownVersionWrapper: {
+                width: 290,
+                position: 'relative',
+                top: '50%',
+                left: '50%',
+                margin: '-120px 0 0 -150px',
+            },
+            uploadButton: {
+                width: 290,
+                marginTop: 8,
+            },
+            oldVersionDesc: {
+                background: 'rgba(0,0,0,0.2)',
+                borderRadius: 4,
+                color: '#fff',
+                padding: 8,
+                fontSize: '0.8em',
+            },
+            circularProgressWrapper: {
+                textAlign: 'center',
+            }
         };
 
-        // var dogbone = (
-        //     <div style={styles.dogboneWrapper}>
-        //         <img src='url(content/lenzhound-dogbone.svg)' />
-        //     </div>
-        // );
+        if (unknownVersion) {
+            return (
+                <div style={styles.rootDiv}>
+                    <div style={styles.unknownVersionWrapperOuter}>
+                        <div style={styles.unknownVersionWrapper}>
+                            <div style={styles.oldVersionDesc}>
+                                {resources.oldVersionDesc}
+                            </div>
+                            <RaisedButton
+                                disabled={loading}
+                                style={styles.uploadButton}
+                                label={resources.uploadTransmitter}
+                                primary={true}
+                                onMouseDown={onClicks.uploadTxr} />
+                            <RaisedButton
+                                disabled={loading}
+                                style={styles.uploadButton}
+                                label={resources.uploadReceiver}
+                                primary={true}
+                                onMouseDown={onClicks.uploadRxr} />
+                            {loading && <div style={styles.circularProgressWrapper}>
+                                <CircularProgress
+                                color={Theme.palette.accent1Color}/>
+                            </div>}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        var dogbone = (
+            <div style={styles.dogboneWrapper}>
+                <img style={styles.dogbone} src='content/lenzhound-dogbone.svg' />
+            </div>
+        );
+
+        var paw = (
+            <div style={styles.pawWrapper}>
+                <TxrPaw style={styles.txrPaw} {...this.props.paw}/>
+            </div>
+        );
+
+        var settings = (
+            <div style={styles.leftSection}>
+                <div style={styles.settingsWrapper}>
+                    <TxrSettings {...this.props.settings}/>
+                </div>
+                <div style={styles.profileList}>
+                    <TxrProfileList profiles={this.props.profiles}/>
+                </div>
+            </div>
+        );
 
         return (
         <div style={styles.rootDiv}>
             <div style={styles.innerDiv}>
-                <div style={styles.leftSection}>
-                    <div style={styles.settingsWrapper}>
-                        <TxrSettings {...this.props.settings}/>
-                    </div>
-                    <div style={styles.profileList}>
-                        <TxrProfileList profiles={this.props.profiles}/>
-                    </div>
-                </div>
-                <div style={styles.pawWrapper}>
-                    <TxrPaw style={styles.txrPaw} {...this.props.paw}/>
-                </div>
+                {settings}
+                {pawPluggedIn && paw}
+                {dogbonePluggedIn && dogbone}
                 <div style={styles.uploadWrapper} onClick={onClicks.uploadIcon}>
                     <FileUploadIcon style={styles.uploadIcon} />
                     <span style={styles.uploadCopy}>

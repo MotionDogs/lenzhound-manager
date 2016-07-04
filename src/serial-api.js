@@ -6,10 +6,15 @@ const config = require('./config');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const Avrgirl = require('../avrgirl');
+const Avrgirl = require('avrgirl-arduino');
 
 var buffer = "";
 var port = null;
+
+const roles = {
+    PAW: 0,
+    DOGBONE: 1,
+};
 
 const types = {
     ECHO: 'e',
@@ -74,31 +79,11 @@ const connect = (p) => {
             // throw err;
         }
 
-        console.log("port error")
+        console.log(`port error: ${err}`)
     });
 };
 
-var interval = setInterval(() => {
-    serialport.list((e, ports) => {
-        if (!ports) throw e;
-        var arduinos = ports.filter(p =>
-            /VID_2341.*PID_8036/i.test(p.pnpId) ||
-            (/2341/i.test(p.vendorId) && /8036/i.test(p.productId)));
-        if (arduinos.length == 1) {
-            if (!port) {
-                connect(arduinos[0]);
-            }
-        } else if (arduinos.length > 1) {
-            console.log("More than one arduino plugged in");
-        } else {
-            if (port) {
-                port.close();
-                port = null;
-                events.emit("SERIAL_PORT_CLOSE");
-            }
-        }
-    });
-}, 1000);
+var interval = null;
 
 module.exports = {
     getPort: () => port,
@@ -113,10 +98,47 @@ module.exports = {
 
             events.once(`RESPONSE_OUTPUT:${key}`, cb);
             setTimeout(() => {
-                err("timeout");
                 events.off(`RESPONSE_OUTPUT:${key}`, cb);
+                err(new Error(`timeout on key:${key}`));
             }, 100);
         });
+    },
+
+    disableAutoConnect() {
+        if (interval) {
+            clearInterval(interval);
+            interval = null;
+        }
+    },
+
+    enableAutoConnect() {
+        if (interval) {
+            clearInterval(interval);
+        }
+        interval = setInterval(() => {
+            serialport.list((e, ports) => {
+                if (!ports) throw e;
+                var arduinos = ports.filter(p =>
+                    /VID_2341.*PID_8036/i.test(p.pnpId) ||
+                    (/2341/i.test(p.vendorId) && /8036/i.test(p.productId)));
+                if (arduinos.length == 1) {
+                    if (!port) {
+                        connect(arduinos[0]);
+                    }
+                } else if (arduinos.length > 1) {
+                    console.log("More than one arduino plugged in");
+                } else {
+                    if (port) {
+                        try {
+                            port.close();
+                        } catch (e) {
+                        }
+                        port = null;
+                        events.emit("SERIAL_PORT_CLOSE");
+                    }
+                }
+            });
+        }, 1000);
     },
 
     closePort() {
@@ -149,12 +171,44 @@ module.exports = {
         return this._getApiPromise(types.GET_ACCEL, v => parseInt(v));
     },
 
-    getTxrVersion() {
-        return this._getApiPromise(types.GET_ROLE, r => parseInt(r)).then(
+    getRole() {
+        return this._getApiPromise(types.GET_ROLE, r => {
+            var parsed = parseInt(r);
+            if (parsed === 0) {
+                return "PAW";
+            } else if (parsed === 1) {
+                return "DOGBONE";
+            } else {
+                return "UNKNOWN";
+            }
+        });
+    },
+
+    getRxrVersion() {
+        return this.getRole().then(
         role => {
-            if (role === 0) {
+            if (role === "DOGBONE") {
                 return this._getApiPromise(types.GET_VERSION, v => v);
-            } else if (role === 1) {
+            } else if (role === "PAW") {
+                return this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
+            } else {
+                return new Promise((ok, err) => {
+                    ok("0.0");
+                });
+            }
+        }, err => {
+            return new Promise((ok, err) => {
+                ok("0.0");
+            });
+        });
+    },
+
+    getTxrVersion() {
+        return this.getRole().then(
+        role => {
+            if (role === "PAW") {
+                return this._getApiPromise(types.GET_VERSION, v => v);
+            } else if (role === "DOGBONE") {
                 return this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
             } else {
                 return new Promise((ok, err) => {
@@ -176,11 +230,15 @@ module.exports = {
         }
     },
 
-    flashTxr(url) {
+    flashBoard(url, progressMonitor) {
         var parsed = path.parse(url);
         var filepath = './downloads/' + parsed.base;
 
-        var avrgirl = new Avrgirl({board: 'leonardo', port: port.comName});
+        var avrgirl = new Avrgirl({
+            board: 'leonardo',
+            port: port.comName,
+            debug: true,
+        });
         port.close();
         port = null;
 
@@ -191,113 +249,6 @@ module.exports = {
                 } else {
                     ok();
                 }
-            });
-        });
-    },
-
-    getLaterTxrVersionIfExists() {
-        return this.getTxrVersion().then(v => new Promise((ok,err) => {
-            var splitVersion = v.split('.');
-            var oldVersion = {
-                major: parseInt(splitVersion[0]),
-                minor: parseInt(splitVersion[1]),
-            };
-
-            var options = {
-                host: config.githubBinDirectoryHost,
-                path: config.githubBinDirectoryPath,
-                headers: {
-                    "User-Agent": "Lenzhound-Manager-1.0",
-                },
-                rejectUnauthorized: false,
-            };
-            https.get(options, res => {
-                if (res.statusCode !== 200) {
-                    err(res);
-                }
-
-                var body = "";
-
-                res.on('error', e => {
-                    err(e);
-                });
-
-                res.on('data', chunk => {
-                    body += chunk;
-                });
-
-                res.on('end', () => {
-                    ok([oldVersion, JSON.parse(body)]);
-                });
-            });
-        })).then(([old, res]) => {
-            var versionMatch = /txr\.ino\.leonardo-([0-9])+\.([0-9]+)\.hex/i;
-            var versions = res.filter(x => versionMatch.test(x.name)).map(x => {
-                var match = versionMatch.exec(x.name);
-                return {
-                    major: parseInt(match[1]),
-                    minor: parseInt(match[2]),
-                    url: x.download_url
-                };
-            });
-
-            versions.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
-            var latest = versions[0];
-
-            if (((latest.major - old.major) || (latest.minor - old.minor)) > 0) {
-                return latest;
-            } else {
-                return null;
-            }
-        }).then(latest => {
-            if (!latest) { return latest; }
-
-            return Promise.denodeify(fs.stat)('./downloads').then(s => {
-                if (!s.isDirectory()) {
-                    throw new Error('panic');
-                }
-
-                return latest;
-            }, err => {
-                fs.mkdir('./downloads');
-                return latest;
-            });
-        }).then(latest => {
-            var parsed = path.parse(latest.url);
-            var filePath = './downloads/' + parsed.base;
-
-            return Promise.denodeify(fs.stat)(filePath).then(f => {
-                if (!f.isFile()) {
-                    throw new Error('panic');
-                }
-
-                return latest;
-            }, err => {
-                return new Promise((ok,err) => {
-                    https.get(latest.url, res => {
-                        if (res.statusCode !== 200) {
-                            throw new Error('panic');
-                        }
-
-                        var body = "";
-                        res.on('data', chunk => {
-                            body += chunk;
-                        });
-
-                        res.on('end', () => {
-                            ok(body);
-                        });
-
-                        res.on('error', (e) => {
-                            err(e);
-                        });
-                    });
-                }).then(contents => {
-                    var writeFile = Promise.denodeify(fs.writeFile)
-                    return writeFile(filePath, contents, 'utf8').then(() => {
-                        return latest;
-                    });
-                });
             });
         });
     },

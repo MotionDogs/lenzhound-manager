@@ -3,6 +3,7 @@ const ReactDOM = require('react-dom');
 const RaisedButton = require('material-ui/lib/raised-button');
 const FlatButton = require('material-ui/lib/flat-button');
 const Dialog = require('material-ui/lib/dialog');
+
 const LensProfile = require('./lens-profile');
 const LensProfileEditor = require('./lens-profile-editor');
 

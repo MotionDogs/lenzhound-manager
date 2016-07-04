@@ -7,6 +7,8 @@ events.SET_START_IN_CAL = "SET_START_IN_CAL";
 events.SET_MAX_VELOCITY = "SET_MAX_VELOCITY";
 events.SET_ACCEL = "SET_ACCEL";
 events.UPLOAD_TO_TXR = "UPLOAD_TO_TXR";
+events.FORCE_UPLOAD_RXR = "FORCE_UPLOAD_RXR";
+events.FORCE_UPLOAD_TXR = "FORCE_UPLOAD_TXR";
 events.RESPONSE_OUTPUT = (val) => "RESPONSE_OUTPUT:" + val;
 
 module.exports = events;
