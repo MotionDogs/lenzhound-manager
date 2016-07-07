@@ -7,6 +7,7 @@ const events = require('./events');
 
 const MAX_MAX_SPEED = 1 << 15;
 const MAX_ACCEL = 32;
+const MAX_CHANNEL = 81;
 
 module.exports = React.createClass({
     propTypes: {
@@ -57,6 +58,16 @@ module.exports = React.createClass({
                 invTransform={(v) => Math.round(v * MAX_ACCEL)}
                 onChange={callbacks.changeAccel}
             />
+
+            <SliderControl
+                title="Channel"
+                disabled={this.props.channel === null}
+                value={clamp(this.props.channel || 0, 1, MAX_CHANNEL)}
+                transform={(v) => (v + 1) / MAX_CHANNEL}
+                invTransform={(v) => Math.round(v * MAX_CHANNEL)}
+                // onChange={callbacks.changeAccel}
+            />
+
             <Checkbox
               label="Start in calibration mode"
               labelPosition='left'

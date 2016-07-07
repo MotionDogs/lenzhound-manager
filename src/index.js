@@ -4,8 +4,6 @@ const root = require('./lib/root');
 const events = require('./lib/events');
 const api = require('./lib/serial-api');
 const remoteFileApi = require('./lib/remote-file-api');
-const Promise = require('promise');
-const logError = require('./lib/error-logger').logError;
 
 const poll = (period, lambda) => {
     var interval = setInterval(() => {
@@ -25,6 +23,10 @@ events.on(events.SERIAL_PORT_OPEN, () => {
                 settings:{[setting]: result},
             });
             stop();
+        }, err => {
+            if (!/timeout/.test(err)) {
+                throw err;
+            }
         }));
     };
 
@@ -42,14 +44,15 @@ events.on(events.SERIAL_PORT_OPEN, () => {
             pollings.push(pollForSetting(() => api.getStartInCal(), "startInCal"));
             pollings.push(pollForSetting(() => api.getMaxSpeed(), "maxSpeed"));
             pollings.push(pollForSetting(() => api.getAccel(), "accel"));
+            pollings.push(pollForSetting(() => api.getChannel(), "channel"));
 
             remoteFileApi.getLaterTxrVersionIfExists().then(v => {
                 root.setProps({newTxrVersion: v || null});
-            }, logError);
+            });
         } else if (result === "DOGBONE") {
             remoteFileApi.getLaterRxrVersionIfExists().then(v => {
                 root.setProps({newRxrVersion: v || null});
-            }, logError);
+            });
 
             root.setProps({
                 unknownVersion: false,

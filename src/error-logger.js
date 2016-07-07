@@ -1,16 +1,11 @@
-module.exports = {
-    logError(err) {
-        if (err) {
-            console.error(err);
-            if (err.stack) {
-                console.log(err.stack);
-            } else {
-                console.log("(no stack trace)");
-            }
-        } else {
-            console.error("An unknown error occurred.");
-        }
+const config = require('./config');
 
-        throw err;
-    }
-};
+Raven.config(config.ravenUrl).install();
+
+window.onerror = function(message, source, lineno, colno, error) {
+    Raven.captureException(error, {extra: {stack: error.stack}});
+}
+
+window.addEventListener('unhandledrejection', function(event) {
+    Raven.captureException(event.reason, {extra: {stack: event.reason.stack}});
+});

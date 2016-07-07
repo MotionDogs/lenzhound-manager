@@ -1,6 +1,5 @@
 const serialport = require('serialport');
 const SerialPort = serialport.SerialPort;
-const Promise = require('promise');
 const events = require('./events');
 const config = require('./config');
 const https = require('https');
@@ -50,7 +49,7 @@ const connect = (p) => {
             throw err;
         }
 
-        events.emit("SERIAL_PORT_OPEN");
+        events.emit(events.SERIAL_PORT_OPEN);
 
         port.on('data', data => {
             buffer += data;
@@ -76,7 +75,8 @@ const connect = (p) => {
     port.on("error", (err) => {
         if (err) {
             port = null;
-            // throw err;
+
+            throw err;
         }
 
         console.log(`port error: ${err}`)
@@ -134,7 +134,7 @@ module.exports = {
                         } catch (e) {
                         }
                         port = null;
-                        events.emit("SERIAL_PORT_CLOSE");
+                        events.emit(events.SERIAL_PORT_CLOSE);
                     }
                 }
             });
@@ -161,6 +161,10 @@ module.exports = {
 
     getMaxSpeed() {
         return this._getApiPromise(types.GET_MAX_VELOCITY, v => parseInt(v));
+    },
+
+    getChannel() {
+        return this._getApiPromise(types.GET_CHANNEL, v => parseInt(v));
     },
 
     setAccel(val) {

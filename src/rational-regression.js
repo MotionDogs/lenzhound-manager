@@ -35,6 +35,10 @@ var inv = (A) => scalarMul(1/det(A),[
 
 // finds the best fit function of the form y = (ax + c)/(x - b)
 // using the least squares method
+//
+// solving for x:
+// x = (by + c) / (y - a)
+//
 // 
 // [[x0,y0],[x1,y1],...,[xn,yn]] -> [a,b,c]
 

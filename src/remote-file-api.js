@@ -1,5 +1,4 @@
 const serial = require('./serial-api');
-const Promise = require('promise');
 const https = require('https');
 const fs = require('fs');
 const config = require('./config');
@@ -54,6 +53,7 @@ module.exports = {
             });
             mapped.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
             var latest = mapped[0];
+            
             return latest;
         }, logError);
     },
@@ -72,6 +72,7 @@ module.exports = {
             });
             mapped.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
             var latest = mapped[0];
+
             return latest;
         }, logError);
     },
