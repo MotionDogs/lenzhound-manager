@@ -74,7 +74,7 @@ var Root = React.createClass({
                 height: '100%',
             },
             innerDiv: {
-                background: 'rgb(219, 224, 255)',
+                background: 'url(content/white_texture.png)',
                 width: '100%',
                 height: '100%',
                 opacity: pluggedIn ? 1 : 0,
