@@ -140,7 +140,7 @@ var Root = React.createClass({
             profileList: {},
             unknownVersionWrapperOuter: {
                 width: '100%',
-                height: '100%'
+                height: '100%',
             },
             unknownVersionWrapper: {
                 width: 290,

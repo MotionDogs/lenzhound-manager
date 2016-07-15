@@ -22,6 +22,8 @@ const types = {
     GET_REMOTE_VERSION: 'w',
     GET_REMOTE_ROLE: 's',
     GET_CHANNEL: 'c',
+    GET_REMOTE_CHANNEL: 'd',
+    SET_REMOTE_CHANNEL: 'D',
     SET_CHANNEL: 'C',
     GET_START_STATE: 't',
     SET_START_STATE: 'T',
@@ -35,6 +37,8 @@ const types = {
     SET_Z_ACCEL: 'B',
     GET_POT: 'p',
     GET_ENCODER: 'e',
+    SAVE_CONFIGS: 'u',
+    INVALID_COMMAND: '`',
 };
 
 const lineTest = /^([^\n]*)\n/;
@@ -57,6 +61,7 @@ const connect = (p) => {
             var match;
             while (match = lineTest.exec(buffer)) {
                 var outputVar = /([a-zA-Z])=(.+)/;
+                var error = /ERR /;
 
                 if (outputVar.test(match[1])) {
                     var ms = outputVar.exec(match[1]);
@@ -64,6 +69,8 @@ const connect = (p) => {
                     var v = ms[2];
 
                     events.emit(events.RESPONSE_OUTPUT(k), v);
+                } else if (error.test(match[1])) {
+                    throw new Error(`Device returned "${match[1]}"`);
                 }
 
                 buffer = buffer.slice(match[0].length);
@@ -171,8 +178,16 @@ module.exports = {
         this.command(`${types.SET_ACCEL} ${val}`);
     },
 
+    setChannel(val) {
+        this.command(`${types.SET_CHANNEL} ${val}`);
+    },
+
     getAccel() {
         return this._getApiPromise(types.GET_ACCEL, v => parseInt(v));
+    },
+
+    saveConfigs() {
+        this.command(types.SAVE_CONFIGS);
     },
 
     getRole() {
@@ -228,6 +243,8 @@ module.exports = {
 
     command(cmd) {
         if (port) {
+            console.log("cmd: " + cmd);
+
             port.write(cmd + '\n', (err, results) => {
                 if (err) throw err;
             });

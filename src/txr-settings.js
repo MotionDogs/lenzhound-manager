@@ -19,13 +19,16 @@ module.exports = React.createClass({
     render() {
         const callbacks = {
             toggleStartInCal: () => {
-                events.emit("SET_START_IN_CAL", !this.props.startInCal);
+                events.emit(events.SET_START_IN_CAL, !this.props.startInCal);
             },
             changeMaxSpeed: (val) => {
-                events.emit("SET_MAX_VELOCITY", val);
+                events.emit(events.SET_MAX_VELOCITY, val);
             },
             changeAccel: (val) => {
-                events.emit("SET_ACCEL", val);
+                events.emit(events.SET_ACCEL, val);
+            },
+            changeChannel: (val) => {
+                events.emit(events.SET_CHANNEL, val);
             },
         };
 
@@ -50,11 +53,12 @@ module.exports = React.createClass({
                 invTransform={(v) => powRounded(MAX_MAX_SPEED, v)}
                 onChange={callbacks.changeMaxSpeed}
             />
+
             <SliderControl
                 title="Acceleration"
                 disabled={this.props.accel === null}
                 value={clamp(this.props.accel || 0, 1, MAX_ACCEL)}
-                transform={(v) => (v + 1) / MAX_ACCEL}
+                transform={(v) => (v + 1) / (MAX_ACCEL + 1)}
                 invTransform={(v) => Math.round(v * MAX_ACCEL)}
                 onChange={callbacks.changeAccel}
             />
@@ -65,7 +69,7 @@ module.exports = React.createClass({
                 value={clamp(this.props.channel || 0, 1, MAX_CHANNEL)}
                 transform={(v) => (v + 1) / MAX_CHANNEL}
                 invTransform={(v) => Math.round(v * MAX_CHANNEL)}
-                // onChange={callbacks.changeAccel}
+                onChange={callbacks.changeChannel}
             />
 
             <Checkbox
