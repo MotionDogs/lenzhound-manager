@@ -2,7 +2,6 @@ const serial = require('./serial-api');
 const https = require('https');
 const fs = require('fs');
 const config = require('./config');
-const logError = require('./error-logger').logError;
 const path = require('path');
 
 module.exports = {
@@ -53,9 +52,9 @@ module.exports = {
             });
             mapped.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
             var latest = mapped[0];
-            
+
             return latest;
-        }, logError);
+        });
     },
 
     getLatestRxrVersion() {
@@ -74,7 +73,7 @@ module.exports = {
             var latest = mapped[0];
 
             return latest;
-        }, logError);
+        });
     },
 
     maybeDownloadNewVersion(current, latest) {
@@ -84,56 +83,62 @@ module.exports = {
                 return null;
             }
 
-            return Promise.denodeify(fs.stat)('./downloads').then(s => {
-                if (!s.isDirectory()) {
-                    throw new Error('panic');
-                }
+            return new Promise((ok, err) => {
+                fs.stat('./downloads', (e, s) => {
+                    if (!s.isDirectory()) {
+                        throw new Error('panic');
+                    }
 
-                return latest;
-            }, err => {
-                fs.mkdir('./downloads');
-                return latest;
+                    if (e) {
+                        fs.mkdir('./downloads', (e) => {
+                            if (e) {
+                                throw new Error('panic');
+                            }
+                            ok(latest);
+                        });
+                    } else {
+                        ok(latest);
+                    }
+                });
             }).then(latest => {
                 if (!latest) { return latest; }
 
                 var parsed = path.parse(latest.url);
                 var filePath = './downloads/' + parsed.base;
 
-                return Promise.denodeify(fs.stat)(filePath).then(f => {
-                    if (!f.isFile()) {
-                        throw new Error('panic');
-                    }
+                return new Promise((ok, err) => {
+                    fs.stat(filePath, (e, s) => {
+                        if (e) {
+                            https.get(latest.url, res => {
+                                if (res.statusCode !== 200) {
+                                    throw new Error('panic');
+                                }
 
-                    return latest;
-                }, err => {
-                    return new Promise((ok,err) => {
-                        https.get(latest.url, res => {
-                            if (res.statusCode !== 200) {
+                                var body = "";
+                                res.on('data', chunk => {
+                                    body += chunk;
+                                });
+
+                                res.on('end', () => {
+                                    fs.writeFile(filePath, body, 'utf8', (e) => {
+                                        if (e) throw e;
+                                        ok(latest);
+                                    });
+                                });
+
+                                res.on('error', (e) => {
+                                    err(e);
+                                });
+                            });
+                        } else {
+                            if (!s.isFile()) {
                                 throw new Error('panic');
                             }
-
-                            var body = "";
-                            res.on('data', chunk => {
-                                body += chunk;
-                            });
-
-                            res.on('end', () => {
-                                ok(body);
-                            });
-
-                            res.on('error', (e) => {
-                                err(e);
-                            });
-                        });
-                    }).then(contents => {
-                        var writeFile = Promise.denodeify(fs.writeFile)
-                        return writeFile(filePath, contents, 'utf8').then(() => {
-                            return latest;
-                        });
-                    }, logError);
+                            ok(latest);
+                        }
+                    });
                 });
-            }, logError)
-            .then(latest => ok(latest), logError);
+            }).then(latest => ok(latest));
         });
     },
 
@@ -148,7 +153,7 @@ module.exports = {
             return this.getLatestTxrVersion().then(latest => {
                 return this.maybeDownloadNewVersion(current, latest);
             });
-        }, logError);
+        });
     },
 
     getLaterRxrVersionIfExists() {
@@ -162,6 +167,6 @@ module.exports = {
             return this.getLatestRxrVersion().then(latest => {
                 return this.maybeDownloadNewVersion(current, latest);
             });
-        }, logError);
+        });
     }
 };

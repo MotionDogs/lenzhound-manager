@@ -140,7 +140,7 @@ var Root = React.createClass({
             profileList: {},
             unknownVersionWrapperOuter: {
                 width: '100%',
-                height: '100%'
+                height: '100%',
             },
             unknownVersionWrapper: {
                 width: 290,
@@ -162,7 +162,12 @@ var Root = React.createClass({
             },
             circularProgressWrapper: {
                 textAlign: 'center',
-            }
+            },
+            inlineCircularProgress: {
+                display: "inline-block",
+                position: "relative",
+                top: 16
+            },
         };
 
         if (unknownVersion) {
@@ -229,6 +234,11 @@ var Root = React.createClass({
                     <span style={styles.uploadCopy}>
                         {resources.uploadFirmware}
                     </span>
+                    {loading &&
+                        <CircularProgress
+                        color={Theme.palette.accent1Color}
+                        size={0.5}
+                        style={styles.inlineCircularProgress}/>}
                 </div>
             </div>
         </div>
