@@ -85,10 +85,6 @@ module.exports = {
 
             return new Promise((ok, err) => {
                 fs.stat('./downloads', (e, s) => {
-                    if (!s.isDirectory()) {
-                        throw new Error('panic');
-                    }
-
                     if (e) {
                         fs.mkdir('./downloads', (e) => {
                             if (e) {
@@ -97,6 +93,10 @@ module.exports = {
                             ok(latest);
                         });
                     } else {
+                        if (!s.isDirectory()) {
+                            throw new Error('panic');
+                        }
+                    
                         ok(latest);
                     }
                 });
