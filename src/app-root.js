@@ -1,3 +1,5 @@
+'use strict';
+
 const _ = require('lodash');
 const AppBar = require('material-ui/lib/app-bar');
 const LeftNav = require('material-ui/lib/left-nav');
@@ -11,14 +13,14 @@ const CircularProgress = require('material-ui/lib/circular-progress');
 
 const resources = require('./resources');
 const TxrPaw = require('./txr-paw');
-const TxrSettings = require('./txr-settings');
-const TxrProfileList = require('./txr-profile-list');
+const ProfileSettingsPanel = require('./profile-settings-panel');
+const ProfileList = require('./profile-list');
 const Theme = require('./theme');
 
 var Root = React.createClass({
 
     propTypes: {
-        settings: React.PropTypes.object,
+        settings: React.PropTypes.array,
         pluggedIn: React.PropTypes.bool,
     },
 
@@ -39,13 +41,31 @@ var Root = React.createClass({
     },
 
     render() {
+
+        const {
+            settings,
+            pawPluggedIn,
+            dogbonePluggedIn,
+            unknownVersion,
+            profileId,
+            loading,
+            newTxrVersion,
+            newRxrVersion,
+            mode
+        } = this.props;
+
+        const pluggedIn = pawPluggedIn || dogbonePluggedIn || unknownVersion;
+        const newVersion = newTxrVersion || newRxrVersion;
+
+        const listMode = mode === 'list';
+
         const onClicks = {
             appBarLeftIcon: () => {this.setState({navOpen: true})},
             uploadIcon: () => {
                 if (pawPluggedIn) {
-                    events.emit(events.UPLOAD_TO_TXR, this.props.newTxrVersion);
+                    events.emit(events.UPLOAD_TO_TXR, newTxrVersion);
                 } else if (dogbonePluggedIn) {
-                    events.emit(events.UPLOAD_TO_RXR, this.props.newRxrVersion);
+                    events.emit(events.UPLOAD_TO_RXR, newRxrVersion);
                 } else {
                     throw new Error("Clicked upload without being plugged in.")
                 }
@@ -57,13 +77,6 @@ var Root = React.createClass({
                 events.emit(events.FORCE_UPLOAD_RXR);
             },
         };
-
-        const pawPluggedIn = this.props.pawPluggedIn;
-        const dogbonePluggedIn = this.props.dogbonePluggedIn;
-        const unknownVersion = this.props.unknownVersion;
-        const pluggedIn = pawPluggedIn || dogbonePluggedIn || unknownVersion;
-        const newVersion = this.props.newTxrVersion || this.props.newRxrVersion;
-        const loading = this.props.loading;
 
         const styles = {
             rootDiv: {
@@ -84,17 +97,25 @@ var Root = React.createClass({
                 WebkitUserSelect: "none",
                 WebkitAppRegion: "drag",
             },
+            pawWrapper: {
+                position: 'absolute',
+                right: pawPluggedIn ? 0 : -1000,
+                transition: '0.5s',
+                width: '60%',
+            },
             txrPaw: {
                 marginLeft: 'auto',
                 marginRight: 'auto',
                 marginTop: 40,
             },
-            pawWrapper: {
-                position: 'relative',
-                left: pawPluggedIn ? 0 : 1000,
+            dogboneWrapper: {
+                position: 'absolute',
+                right: dogbonePluggedIn ? 0 : -1000,
                 transition: '0.5s',
                 width: '60%',
-                float: 'left',
+            },
+            dogbone: {
+                marginLeft: '24%',
             },
             startImage: {
                 position: 'absolute',
@@ -103,12 +124,26 @@ var Root = React.createClass({
             },
             settingsWrapper: {
             },
-            leftSection: {
-                position: 'relative',
-                right: pluggedIn ? 0 : 1000,
+            pawSettingsSection: {
+                margin: 6,
+                position: 'absolute',
+                left: (pawPluggedIn && profileId) ? 0 : -1000,
                 transition: '0.5s',
                 width: '40%',
-                float: 'left',
+            },
+            dogboneSettingsSection: {
+                margin: 6,
+                position: 'absolute',
+                left: (dogbonePluggedIn) ? 0 : -1000,
+                transition: '0.5s',
+                width: '40%',
+            },
+            profilesSection: {
+                margin: 6,
+                position: 'absolute',
+                left: (pawPluggedIn && !profileId) ? 0 : -1000,
+                transition: '0.5s',
+                width: '40%',
             },
             uploadWrapper: {
                 position: 'absolute',
@@ -127,16 +162,6 @@ var Root = React.createClass({
                 color: Theme.palette.accent1Color,
                 fontFamily: 'Roboto',
             },
-            dogboneWrapper: {
-                position: 'relative',
-                left: dogbonePluggedIn ? 0 : 1000,
-                transition: '0.5s',
-                width: '60%',
-                float: 'left',
-            },
-            dogbone: {
-                marginLeft: '24%',
-            },
             profileList: {},
             unknownVersionWrapperOuter: {
                 width: '100%',
@@ -144,7 +169,7 @@ var Root = React.createClass({
             },
             unknownVersionWrapper: {
                 width: 290,
-                position: 'relative',
+                position: 'absolute',
                 top: '50%',
                 left: '50%',
                 margin: '-120px 0 0 -150px',
@@ -165,7 +190,7 @@ var Root = React.createClass({
             },
             inlineCircularProgress: {
                 display: "inline-block",
-                position: "relative",
+                position: "absolute",
                 top: 16
             },
         };
@@ -192,7 +217,7 @@ var Root = React.createClass({
                                 onMouseDown={onClicks.uploadRxr} />
                             {loading && <div style={styles.circularProgressWrapper}>
                                 <CircularProgress
-                                color={Theme.palette.accent1Color}/>
+                                    color={Theme.palette.accent1Color}/>
                             </div>}
                         </div>
                     </div>
@@ -200,25 +225,41 @@ var Root = React.createClass({
             );
         }
 
-        var dogbone = (
+        var dogboneSection = (
             <div style={styles.dogboneWrapper}>
                 <img style={styles.dogbone} src='content/lenzhound-dogbone.svg' />
             </div>
         );
 
-        var paw = (
+        var pawSection = (
             <div style={styles.pawWrapper}>
-                <TxrPaw style={styles.txrPaw} {...this.props.paw}/>
+                <TxrPaw style={styles.txrPaw} profiles={settings} {...this.props.paw}/>
             </div>
         );
 
-        var settings = (
-            <div style={styles.leftSection}>
+        var profile = settings.find(p =>
+            p.profileId == profileId);
+
+        var pawSettingsSection = pawPluggedIn && (
+            <div style={styles.pawSettingsSection}>
                 <div style={styles.settingsWrapper}>
-                    <TxrSettings {...this.props.settings}/>
+                    {<ProfileSettingsPanel {...profile} dogbone={false}/>}
                 </div>
+            </div>
+        );
+
+        var dogboneSettingsSection = dogbonePluggedIn && (
+            <div style={styles.dogboneSettingsSection}>
+                <div style={styles.settingsWrapper}>
+                    {<ProfileSettingsPanel {...profile} dogbone={true}/>}
+                </div>
+            </div>
+        );
+
+        var profilesSection = (
+            <div style={styles.profilesSection}>
                 <div style={styles.profileList}>
-                    <TxrProfileList profiles={this.props.profiles}/>
+                    {<ProfileList profiles={settings}/>}
                 </div>
             </div>
         );
@@ -226,9 +267,11 @@ var Root = React.createClass({
         return (
         <div style={styles.rootDiv}>
             <div style={styles.innerDiv}>
-                {settings}
-                {pawPluggedIn && paw}
-                {dogbonePluggedIn && dogbone}
+                {pawSection}
+                {dogboneSection}
+                {pawSettingsSection}
+                {dogboneSettingsSection}
+                {profilesSection}
                 <div style={styles.uploadWrapper} onClick={onClicks.uploadIcon}>
                     <FileUploadIcon style={styles.uploadIcon} />
                     <span style={styles.uploadCopy}>
@@ -236,9 +279,9 @@ var Root = React.createClass({
                     </span>
                     {loading &&
                         <CircularProgress
-                        color={Theme.palette.accent1Color}
-                        size={0.5}
-                        style={styles.inlineCircularProgress}/>}
+                            color={Theme.palette.accent1Color}
+                            size={0.5}
+                            style={styles.inlineCircularProgress}/>}
                 </div>
             </div>
         </div>
@@ -254,5 +297,8 @@ module.exports = {
             <Root {...props}/>,
             document.getElementById('app')
         );
+    },
+    getProps() {
+        return _.merge({}, props);
     }
 };
