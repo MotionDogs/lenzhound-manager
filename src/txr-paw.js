@@ -25,12 +25,22 @@ module.exports = React.createClass({
 
     componentDidMount() {
         this.setPot = _.throttle((str) => {
-            var pot = parseInt(str);
+            const pot = parseInt(str);
 
             this.setState({pot, potFound: true});
         }, 100);
+        this.setProfileHover = val => str => {
+            const {profiles} = this.props;
+            const hoveredProfileId = parseInt(str);
 
-        events.on("RESPONSE_OUTPUT:p", this.setPot);
+            const index = profiles.findIndex(p => p.profileId == hoveredProfileId);
+
+            this.setState({buttonHovers: {[index]: val}});
+        };
+
+        events.on(events.RESPONSE_OUTPUT('p'), this.setPot);
+        events.on(events.PROFILE_MOUSEOVER, this.setProfileHover(true));
+        events.on(events.PROFILE_MOUSEOUT, this.setProfileHover(false));
     },
 
     componentWillUnmount() {
@@ -38,6 +48,8 @@ module.exports = React.createClass({
     },
 
     render() {
+        const {profiles} = this.props;
+
         const pawButtonWidth = 40;
 
         const width = pawButtonWidth * 4 + 60;
@@ -52,10 +64,14 @@ module.exports = React.createClass({
             width: 40,
             height: 40,
             background: '#333',
-            boxShadow: '1px 2px 2px rgba(0, 0, 0, 0.2)',
         };
 
         const potPosition = ((this.state.pot - 512) / 1024) * 0.77;
+
+        const buttonHovers = this.state.buttonHovers;
+
+        const shadow = (i) => buttonHovers[i] ?
+            '0 0 5px #fff' : 'none';
 
         const styles = {
             base: {
@@ -67,10 +83,10 @@ module.exports = React.createClass({
                 boxShadow: '0px 4px 5px rgba(0,0,0,0.2), 3px 3px 17px rgba(0,0,0,0.2)',
             },
             pawButtons: [
-                {...pawButtonStyleBase, marginLeft: 16, top: 16},
-                {...pawButtonStyleBase, marginLeft: 8 },
-                {...pawButtonStyleBase, marginLeft: 11 },
-                {...pawButtonStyleBase, marginLeft: 8 , top: 16},
+                {...pawButtonStyleBase, marginLeft: 16, top: 16, boxShadow: shadow(0)},
+                {...pawButtonStyleBase, marginLeft: 8, boxShadow: shadow(1) },
+                {...pawButtonStyleBase, marginLeft: 11, boxShadow: shadow(2) },
+                {...pawButtonStyleBase, marginLeft: 8 , top: 16, boxShadow: shadow(3)},
             ],
             canvas: {
                 position: 'absolute',
@@ -124,10 +140,6 @@ module.exports = React.createClass({
             }
         };
 
-        const buttonSetHover = (index, val) => () => this.setState({
-            buttonHovers: {[index]: val}
-        });
-
         return (
         <div style={styles.base}>
             <canvas
@@ -139,7 +151,13 @@ module.exports = React.createClass({
 
             <div style={styles.encoder} />
 
-            {[PAW_1,PAW_2,PAW_3,PAW_4].map((_,i) => <div key={i} style={styles.pawButtons[i]} />)}
+            {[PAW_1,PAW_2,PAW_3,PAW_4].map((_,i) => (<div
+                key={i}
+                style={styles.pawButtons[i]}
+                onClick={() => events.emit(events.PROFILE_SELECTED, profiles[i].profileId)}
+                onMouseOver={() => events.emit(events.PROFILE_MOUSEOVER, profiles[i].profileId)}
+                onMouseOut={() => events.emit(events.PROFILE_MOUSEOUT, profiles[i].profileId)}
+            />))}
 
             <div style={styles.palm}>
                 <div style={styles.pot}>

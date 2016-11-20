@@ -38,6 +38,7 @@
     "react": "^0.14.6",
     "react-dom": "^0.14.6",
     "react-tap-event-plugin": "^0.2.1",
+    "string-hash": "^1.1.0",
     "serialport": "^4.0.3"
   }
 }

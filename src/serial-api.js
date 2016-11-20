@@ -1,6 +1,7 @@
 const serialport = require('serialport');
 const events = require('./events');
 const config = require('./config');
+const cconsole = require('./cconsole');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
@@ -14,33 +15,44 @@ const roles = {
     DOGBONE: 1,
 };
 
+const NAME_MAX_LENGTH = 20;
+
 const types = {
-    ECHO: 'e',
-    GET_VERSION: 'v',
-    GET_ROLE: 'r',
-    GET_REMOTE_VERSION: 'w',
-    GET_REMOTE_ROLE: 's',
-    GET_CHANNEL: 'c',
-    GET_REMOTE_CHANNEL: 'd',
-    SET_REMOTE_CHANNEL: 'D',
-    SET_CHANNEL: 'C',
-    GET_START_STATE: 't',
-    SET_START_STATE: 'T',
-    GET_MAX_VELOCITY: 'm',
-    SET_MAX_VELOCITY: 'M',
-    GET_ACCEL: 'a',
-    SET_ACCEL: 'A',
-    GET_Z_MAX_VELOCITY: 'n',
-    SET_Z_MAX_VELOCITY: 'N',
-    GET_Z_ACCEL: 'b',
-    SET_Z_ACCEL: 'B',
-    GET_POT: 'p',
-    GET_ENCODER: 'e',
-    SAVE_CONFIGS: 'u',
-    INVALID_COMMAND: '`',
+    ECHO: 'e', 'e': 'ECHO',
+    GET_VERSION: 'v', 'v': 'GET_VERSION',
+    GET_ROLE: 'r', 'r': 'GET_ROLE',
+    GET_REMOTE_VERSION: 'w', 'w': 'GET_REMOTE_VERSION',
+    GET_REMOTE_ROLE: 's', 's': 'GET_REMOTE_ROLE',
+    GET_PRESET_INDEX: 'q', 'q': 'GET_PRESET_INDEX',
+    SET_PRESET_INDEX: 'Q', 'Q': 'SET_PRESET_INDEX',
+    GET_ID: 'i', 'i': 'GET_ID',
+    SET_ID: 'I', 'I': 'SET_ID',
+    GET_NAME: 'n', 'n': 'GET_NAME',
+    SET_NAME: 'N', 'N': 'SET_NAME',
+    GET_CHANNEL: 'c', 'c': 'GET_CHANNEL',
+    SET_CHANNEL: 'C', 'C': 'SET_CHANNEL',
+    GET_REMOTE_CHANNEL: 'd', 'd': 'GET_REMOTE_CHANNEL',
+    SET_REMOTE_CHANNEL: 'D', 'D': 'SET_REMOTE_CHANNEL',
+    GET_START_STATE: 't', 't': 'GET_START_STATE',
+    SET_START_STATE: 'T', 'T': 'SET_START_STATE',
+    GET_MAX_VELOCITY: 'm', 'm': 'GET_MAX_VELOCITY',
+    SET_MAX_VELOCITY: 'M', 'M': 'SET_MAX_VELOCITY',
+    GET_ACCEL: 'a', 'a': 'GET_ACCEL',
+    SET_ACCEL: 'A', 'A': 'SET_ACCEL',
+    GET_Z_ACCEL: 'b', 'b': 'GET_Z_ACCEL',
+    SET_Z_ACCEL: 'B', 'B': 'SET_Z_ACCEL',
+    GET_POT: 'p', 'p': 'GET_POT',
+    GET_ENCODER: 'e', 'e': 'GET_ENCODER',
+    SAVE_CONFIGS: 'u', 'u': 'SAVE_CONFIGS',
+    RELOAD_CONFIGS: 'x', 'x': 'RELOAD_CONFIGS',
+    INVALID_COMMAND: '`', '`': 'INVALID_COMMAND',
 };
 
+const DEFAULT_ID_SEED = 0xcafe;
+
 const lineTest = /^([^\n]*)\n/;
+
+var verboseLogging = true;
 
 const connect = (p) => {
     port = new serialport(p.comName, {
@@ -59,20 +71,35 @@ const connect = (p) => {
 
             var match;
             while (match = lineTest.exec(buffer)) {
-                var outputVar = /([a-zA-Z])=(.+)/;
+                var line = match[1];
+                var okResponse = /([a-zA-Z]) OK/;
+                var outputVar = /([a-zA-Z])=(.*)/;
                 var error = /ERR /;
 
-                if (outputVar.test(match[1])) {
-                    var ms = outputVar.exec(match[1]);
+                if (okResponse.test(line)) {
+                    var ms = okResponse.exec(line);
+                    var k = ms[1];
+
+                    verboseLogging && cconsole.log("out", `${types[k] || k} OK`);
+
+                    events.emit(events.RESPONSE_OK(k));
+                } else if (outputVar.test(line)) {
+                    var ms = outputVar.exec(line);
                     var k = ms[1];
                     var v = ms[2];
 
+                    verboseLogging && cconsole.log("out", `${types[k] || k}=${v}`);
+
                     events.emit(events.RESPONSE_OUTPUT(k), v);
-                } else if (error.test(match[1])) {
-                    throw new Error(`Device returned "${match[1]}"`);
+                } else if (error.test(line)) {
+                    throw new Error(`Device returned "${line}"`);
                 }
 
                 buffer = buffer.slice(match[0].length);
+            }
+
+            if (buffer.length && verboseLogging) {
+                cconsole.log("raw", data.toString());
             }
         });
 
@@ -85,7 +112,7 @@ const connect = (p) => {
             throw err;
         }
 
-        console.log(`port error: ${err}`)
+        cconsole.log("err",`port error: ${err}`)
     });
 };
 
@@ -102,10 +129,26 @@ module.exports = {
                 ok(callback(v));
             };
 
-            events.once(`RESPONSE_OUTPUT:${key}`, cb);
+            events.once(events.RESPONSE_OUTPUT(key), cb);
             setTimeout(() => {
-                events.off(`RESPONSE_OUTPUT:${key}`, cb);
-                err(new Error(`timeout on key:${key}`));
+                events.off(events.RESPONSE_OUTPUT(key), cb);
+                err(new Error(`timeout on key:${types[key] || key}`));
+            }, 100);
+        });
+    },
+
+    _getApiOkPromise(key) {
+        return new Promise((ok, err) => {
+            this.command(key);
+
+            const cb = (v) => {
+                ok(v);
+            };
+
+            events.once(events.RESPONSE_OK(key[0]), cb);
+            setTimeout(() => {
+                events.off(events.RESPONSE_OK(key[0]), cb);
+                err(new Error(`timeout on key:${types[key[0]] || key[0]}`));
             }, 100);
         });
     },
@@ -132,7 +175,7 @@ module.exports = {
                         connect(arduinos[0]);
                     }
                 } else if (arduinos.length > 1) {
-                    console.log("More than one arduino plugged in");
+                    cconsole.log("err", "More than one arduino plugged in");
                 } else {
                     if (port) {
                         try {
@@ -153,7 +196,7 @@ module.exports = {
     },
 
     setStartInCal(val) {
-        this.command(`${types.SET_START_STATE} ${val ? "1" : "0"}`);
+        return this._getApiOkPromise(`${types.SET_START_STATE} ${val ? "1" : "0"}`);
     },
 
     getStartInCal() {
@@ -162,11 +205,42 @@ module.exports = {
     },
 
     setMaxSpeed(val) {
-        this.command(`${types.SET_MAX_VELOCITY} ${val}`);
+        return this._getApiOkPromise(`${types.SET_MAX_VELOCITY} ${val}`);
     },
 
     getMaxSpeed() {
         return this._getApiPromise(types.GET_MAX_VELOCITY, v => parseInt(v));
+    },
+
+    setPresetIndex(val) {
+        return this._getApiOkPromise(`${types.SET_PRESET_INDEX} ${val}`);
+    },
+
+    getPresetIndex() {
+        return this._getApiPromise(types.GET_PRESET_INDEX, v => parseInt(v));
+    },
+
+    setId(val) {
+        return this._getApiOkPromise(`${types.SET_ID} ${val}`);
+    },
+
+    getId() {
+        return this._getApiPromise(types.GET_ID, v => parseInt(v));
+    },
+
+    setName(val) {
+        if (val.length > NAME_MAX_LENGTH) {
+            throw new Error("Tried to set a name that was too long.");
+        }
+        return this._getApiOkPromise(`${types.SET_NAME} ${val}`);
+    },
+
+    getName() {
+        return this._getApiPromise(types.GET_NAME, v => v);
+    },
+
+    setChannel(val) {
+        return this._getApiOkPromise(`${types.SET_CHANNEL} ${val}`);
     },
 
     getChannel() {
@@ -174,11 +248,7 @@ module.exports = {
     },
 
     setAccel(val) {
-        this.command(`${types.SET_ACCEL} ${val}`);
-    },
-
-    setChannel(val) {
-        this.command(`${types.SET_CHANNEL} ${val}`);
+        return this._getApiOkPromise(`${types.SET_ACCEL} ${val}`);
     },
 
     getAccel() {
@@ -186,7 +256,11 @@ module.exports = {
     },
 
     saveConfigs() {
-        this.command(types.SAVE_CONFIGS);
+        return this._getApiOkPromise(types.SAVE_CONFIGS);
+    },
+
+    reloadConfigs() {
+        return this._getApiOkPromise(types.RELOAD_CONFIGS);
     },
 
     getRole() {
@@ -240,9 +314,13 @@ module.exports = {
         });
     },
 
+    turnVerboseLoggingOn() {
+        verboseLogging = true;
+    },
+
     command(cmd) {
         if (port) {
-            console.log("cmd: " + cmd);
+            cconsole.log("cmd", (types[cmd] || cmd));
 
             port.write(cmd + '\n', (err, results) => {
                 if (err) throw err;

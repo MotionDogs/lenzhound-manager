@@ -7,7 +7,7 @@ module.exports = React.createClass({
     render() {
         return (
             <div>
-                hello
+                {this.props.profileName || "Default Profile"}
             </div>
         )
     }

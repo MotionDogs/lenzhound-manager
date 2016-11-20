@@ -7,6 +7,9 @@ const remoteFileApi = require('./lib/remote-file-api');
 const _ = require('lodash');
 require('./lib/error-logger');
 
+const CONFIG_DEBOUNCE_MILLISECONDS = 1000;
+const PAW_BUTTON_COUNT = 4;
+
 const poll = (period, lambda) => {
     var interval = setInterval(() => {
         lambda(() => {
@@ -16,54 +19,102 @@ const poll = (period, lambda) => {
     return interval;
 }
 
-var pollings = [];
+const mergeProfile = (profileId, settings) => {
+    var props = app.getProps();
+    var index = props.settings.findIndex(p => p.profileId === profileId);
+    var oldSettings = props.settings[index];
+    var profiles = props.settings.slice(0, index)
+        .concat([Object.assign({}, oldSettings, settings)])
+        .concat(props.settings.slice(index+1));
+    var newProps = Object.assign({}, props, {settings:profiles});
+    app.setProps(newProps);
+};
+
+const wait = (time) => {
+    return new Promise((ok,err) => setTimeout(() => ok(), time));
+};
+
+let profiles = null;
 
 events.on(events.SERIAL_PORT_OPEN, () => {
-    const pollForSetting = (promise, setting) => {
-        return poll(1000, stop => promise().then(result => {
-            app.setProps({
-                settings:{[setting]: result},
-            });
-            stop();
-        }, err => {
-            if (!/timeout/.test(err)) {
-                throw err;
-            } else {
-                app.setProps({
-                    settings:{[setting]: null},
-                });
-            }
-        }));
-    };
 
     poll(1000, stop => api.getRole().then(result => {
+
         app.setProps({
             unknownVersion: false,
             pawPluggedIn: result === "PAW",
             dogbonePluggedIn: result === "DOGBONE",
-            settings: {
-                startInCal: null,
-                maxSpeed: null,
-                accel: null,
-                channel: null,
-            }
+            settings: []
+            // settings: {
+            //     profileId: 2,
+            //     startInCal: false,
+            //     maxSpeed: 24,
+            //     accel: 31,
+            //     channel: 5
+            // }
         });
-        pollings.push(pollForSetting(() => api.getStartInCal(), "startInCal"));
-        pollings.push(pollForSetting(() => api.getMaxSpeed(), "maxSpeed"));
-        pollings.push(pollForSetting(() => api.getAccel(), "accel"));
-        pollings.push(pollForSetting(() => api.getChannel(), "channel"));
+
 
         if (result === "PAW") {
-            remoteFileApi.getLaterTxrVersionIfExists().then(v => {
-                app.setProps({newTxrVersion: v || null, unknownVersion: false});
+
+            var getSettingsRecursive = (settings,index) => (index < PAW_BUTTON_COUNT) ?
+                api.setPresetIndex(index).then(() => wait(10).then(() =>
+                api.getId().then(profileId => wait(10).then(() =>
+                api.getStartInCal().then(startInCal => wait(10).then(() =>
+                api.getMaxSpeed().then(maxSpeed =>  wait(10).then(() =>
+                api.getAccel().then(accel => wait(10).then(() =>
+                api.getChannel().then(channel => wait(10).then(() =>
+                api.getName().then(profileName => wait(10).then(() => {
+
+                    settings.push({
+                        profileId,
+                        profileName,
+                        startInCal,
+                        maxSpeed,
+                        accel,
+                        channel,
+                    });
+
+                    return getSettingsRecursive(settings, index + 1)
+                })))))))))))))) : settings;
+
+            api.getPresetIndex().then(index => {
+                getSettingsRecursive([],0).then((settings) => {
+                    profiles = settings;
+                    api.setPresetIndex(index).then(() => {
+                        app.setProps({ settings });
+                    });
+
+                    remoteFileApi.getLaterTxrVersionIfExists().then(v => {
+                        app.setProps({newTxrVersion: v || null, unknownVersion: false});
+                    });
+                });
             });
+
         } else if (result === "DOGBONE") {
+
+            api.getChannel().then(channel => {
+                app.setProps({
+                    profileId: 1,
+                    settings: [{
+                        profileId: 1,
+                        profileName: null,
+                        startInCal: null,
+                        maxSpeed: null,
+                        accel: null,
+                        channel,
+                    }]
+                });
+            });
+
             remoteFileApi.getLaterRxrVersionIfExists().then(v => {
                 app.setProps({newRxrVersion: v || null, unknownVersion: false});
             });
+
         } else {
             app.setProps({unknownVersion: true});
         }
+
         stop();
     }, err => {
         app.setProps({unknownVersion: true});
@@ -71,31 +122,48 @@ events.on(events.SERIAL_PORT_OPEN, () => {
 });
 
 events.on(events.SERIAL_PORT_CLOSE, () => {
-    pollings.forEach(p => clearInterval(p));
     app.setProps({pawPluggedIn: false, dogbonePluggedIn: false});
 });
 
-events.on(events.SET_START_IN_CAL, (startInCal) => {
-    app.setProps({settings:{startInCal}});
-    api.setStartInCal(startInCal);
+const saveConfigsDebounced = _.debounce(() =>
+    api.saveConfigs(), CONFIG_DEBOUNCE_MILLISECONDS);
+
+events.on(events.UPDATE_PROFILE, (payload) => {
+    const {
+        profileId,
+        maxSpeed,
+        accel,
+        channel,
+        profileName,
+        startInCal
+    } = payload;
+
+    if (maxSpeed) {
+        mergeProfile(profileId, {maxSpeed});
+        api.setMaxSpeed(maxSpeed);
+        saveConfigsDebounced();   
+    }
+    if (accel) {
+        mergeProfile(profileId, {accel});
+        api.setAccel(accel);
+        saveConfigsDebounced();
+    }
+    if (channel) {
+        mergeProfile(profileId, {channel});
+        api.setChannel(channel);
+    }
+    if (profileName) {
+        mergeProfile(profileId, {profileName});
+        api.setName(profileName);
+    }
+    if (startInCal === false || startInCal === true) {
+        mergeProfile(profileId, {startInCal});
+        api.setStartInCal(startInCal);
+    }
 });
-
-const saveConfigsDebounced = _.debounce(() => api.saveConfigs(), 5000);
-
-events.on(events.SET_MAX_VELOCITY, (maxSpeed) => {
-    app.setProps({settings:{maxSpeed}});
-    api.setMaxSpeed(maxSpeed);
-    saveConfigsDebounced();
-});
-
-events.on(events.SET_ACCEL, (accel) => {
-    app.setProps({settings:{accel}});
-    api.setAccel(accel);
-    saveConfigsDebounced();
-});
-
 
 events.on(events.SET_CHANNEL, (channel) => {
+
     app.setProps({settings:{channel}});
     api.setChannel(channel);
 });
@@ -143,6 +211,31 @@ events.on(events.FORCE_UPLOAD_RXR, () => {
 events.on(events.RESPONSE_OUTPUT("*"), (val) => {
 });
 
-app.setProps({pawPluggedIn:false, profiles: []});
+events.on(events.LIST_PROFILES, () => {
+    app.setProps({profileId: null});
+});
+
+events.on(events.PROFILE_SELECTED, val => {
+    var props = app.getProps();
+    var index = props.settings.findIndex(p => p.profileId === val);
+    if (index != -1 && index < 4) {
+        api.setPresetIndex(index).then(() =>
+        api.reloadConfigs().then(() => {
+            app.setProps({profileId: val});
+        }));
+    } else {
+        app.setProps({profileId: val});
+    }
+});
+
+events.on(events.RESPONSE_OUTPUT(api.types.GET_PRESET_INDEX), val => {
+    if (profiles) {
+        var index = parseInt(val);
+        var profileId = profiles[index].profileId;
+        events.emit(events.PROFILE_SELECTED, profileId);
+    }
+});
+
+app.setProps({pawPluggedIn:false, settings: []});
 
 api.enableAutoConnect();
