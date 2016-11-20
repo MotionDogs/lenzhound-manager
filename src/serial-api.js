@@ -1,11 +1,10 @@
 const serialport = require('serialport');
-const SerialPort = serialport.SerialPort;
 const events = require('./events');
 const config = require('./config');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const Avrgirl = require('avrgirl-arduino');
+// const Avrgirl = require('avrgirl-arduino');
 
 var buffer = "";
 var port = null;
@@ -44,7 +43,7 @@ const types = {
 const lineTest = /^([^\n]*)\n/;
 
 const connect = (p) => {
-    port = new SerialPort(p.comName, {
+    port = new serialport(p.comName, {
         baudRate: 9600
     });
 

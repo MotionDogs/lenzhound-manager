@@ -6,6 +6,7 @@ const ThemeManager = require('material-ui/lib/styles/theme-manager');
 const FileUploadIcon = require('material-ui/lib/svg-icons/file/file-upload');
 const IconButton = require('material-ui/lib/icon-button');
 const React = require('react');
+const ReactDOM = require('react-dom');
 const RaisedButton = require('material-ui/lib/raised-button');
 const CircularProgress = require('material-ui/lib/circular-progress');
 

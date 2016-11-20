@@ -2,7 +2,7 @@
   "name": "lenzhound-manager",
   "version": "0.0.0",
   "description": "Lenzhound settings and timelapse manager.",
-  "main": "main.js",
+  "main": "index.html",
   "scripts": {
     "build": "./node_modules/.bin/babel ./src -d ./lib",
     "package": "./node_modules/.bin/electron-packager . Lenzhound --platform=darwin --arch=x64 --version=1.1.3",
@@ -24,16 +24,20 @@
     "electron-rebuild": "^1.1.1"
   },
   "dependencies": {
-    "avrgirl-arduino": "^1.7.1",
-    "electron-prebuilt": "^1.1.3",
+    "avrgirl-arduino": "^1.9.8",
+    "babel-cli": "^6.16.0",
+    "babel-plugin-transform-object-rest-spread": "^6.16.0",
+    "babel-preset-es2015": "^6.16.0",
+    "electron-prebuilt": "^1.4.4",
+    "electron-rebuild": "^1.3.0",
     "event-emitter": "^0.3.4",
-    "lodash": "^4.3.0",
+    "lodash": "^4.16.4",
     "material-ui": "^0.14.2",
     "promise": "^7.1.1",
     "radium": "^0.16.6",
     "react": "^0.14.6",
     "react-dom": "^0.14.6",
     "react-tap-event-plugin": "^0.2.1",
-    "serialport": "^3.1.2"
+    "serialport": "^4.0.3"
   }
 }
