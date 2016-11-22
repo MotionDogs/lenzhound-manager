@@ -5,7 +5,7 @@ const cconsole = require('./cconsole');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-// const Avrgirl = require('avrgirl-arduino');
+const Avrgirl = require('avrgirl-arduino');
 
 var buffer = "";
 var port = null;
