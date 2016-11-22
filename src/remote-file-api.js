@@ -80,7 +80,8 @@ module.exports = {
         return new Promise((ok, err) => {
             if (((latest.major - current.major) ||
                 (latest.minor - current.minor)) <= 0) {
-                return null;
+                ok(null);
+                return;
             }
 
             return new Promise((ok, err) => {

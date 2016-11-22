@@ -57,58 +57,64 @@ events.on(events.SERIAL_PORT_OPEN, () => {
 
         if (result === "PAW") {
 
-            var getSettingsRecursive = (settings,index) => (index < PAW_BUTTON_COUNT) ?
-                api.setPresetIndex(index).then(() => wait(10).then(() =>
-                api.getId().then(profileId => wait(10).then(() =>
-                api.getStartInCal().then(startInCal => wait(10).then(() =>
-                api.getMaxSpeed().then(maxSpeed =>  wait(10).then(() =>
-                api.getAccel().then(accel => wait(10).then(() =>
-                api.getChannel().then(channel => wait(10).then(() =>
-                api.getName().then(profileName => wait(10).then(() => {
+            remoteFileApi.getLaterTxrVersionIfExists().then(v => {
 
-                    settings.push({
-                        profileId,
-                        profileName,
-                        startInCal,
-                        maxSpeed,
-                        accel,
-                        channel,
-                    });
+                if (v) {
+                    app.setProps({newTxrVersion: v || null, unknownVersion: false});
+                }
+                
+                var getSettingsRecursive = (settings,index) => (index < PAW_BUTTON_COUNT) ?
+                    api.setPresetIndex(index).then(() => wait(10).then(() =>
+                    api.getId().then(profileId => wait(10).then(() =>
+                    api.getStartInCal().then(startInCal => wait(10).then(() =>
+                    api.getMaxSpeed().then(maxSpeed =>  wait(10).then(() =>
+                    api.getAccel().then(accel => wait(10).then(() =>
+                    api.getChannel().then(channel => wait(10).then(() =>
+                    api.getName().then(profileName => wait(10).then(() => {
 
-                    return getSettingsRecursive(settings, index + 1)
-                })))))))))))))) : settings;
+                        settings.push({
+                            profileId,
+                            profileName,
+                            startInCal,
+                            maxSpeed,
+                            accel,
+                            channel,
+                        });
 
-            api.getPresetIndex().then(index => {
-                getSettingsRecursive([],0).then((settings) => {
-                    profiles = settings;
-                    api.setPresetIndex(index).then(() => {
-                        app.setProps({ settings });
-                    });
+                        return getSettingsRecursive(settings, index + 1)
+                    })))))))))))))) : settings;
 
-                    remoteFileApi.getLaterTxrVersionIfExists().then(v => {
-                        app.setProps({newTxrVersion: v || null, unknownVersion: false});
+                api.getPresetIndex().then(index => {
+                    getSettingsRecursive([],0).then((settings) => {
+                        profiles = settings;
+                        api.setPresetIndex(index).then(() => {
+                            app.setProps({ settings });
+                        });
                     });
                 });
             });
 
         } else if (result === "DOGBONE") {
 
-            api.getChannel().then(channel => {
-                app.setProps({
-                    profileId: 1,
-                    settings: [{
-                        profileId: 1,
-                        profileName: null,
-                        startInCal: null,
-                        maxSpeed: null,
-                        accel: null,
-                        channel,
-                    }]
-                });
-            });
-
             remoteFileApi.getLaterRxrVersionIfExists().then(v => {
-                app.setProps({newRxrVersion: v || null, unknownVersion: false});
+
+                if (v) {
+                    app.setProps({newRxrVersion: v || null, unknownVersion: false});
+                }
+
+                api.getChannel().then(channel => {
+                    app.setProps({
+                        profileId: 1,
+                        settings: [{
+                            profileId: 1,
+                            profileName: null,
+                            startInCal: null,
+                            maxSpeed: null,
+                            accel: null,
+                            channel,
+                        }]
+                    });
+                });
             });
 
         } else {
