@@ -34,6 +34,7 @@ const wait = (time) => {
     return new Promise((ok,err) => setTimeout(() => ok(), time));
 };
 
+let profileId = null;
 let profiles = null;
 
 events.on(events.SERIAL_PORT_OPEN, () => {
@@ -168,12 +169,6 @@ events.on(events.UPDATE_PROFILE, (payload) => {
     }
 });
 
-events.on(events.SET_CHANNEL, (channel) => {
-
-    app.setProps({settings:{channel}});
-    api.setChannel(channel);
-});
-
 events.on(events.UPLOAD_TO_TXR, (version) => {
     api.disableAutoConnect();
     app.setProps({loading: true});
@@ -222,6 +217,7 @@ events.on(events.LIST_PROFILES, () => {
 });
 
 events.on(events.PROFILE_SELECTED, val => {
+    profileId = val;
     var props = app.getProps();
     var index = props.settings.findIndex(p => p.profileId === val);
     if (index != -1 && index < 4) {
@@ -237,8 +233,20 @@ events.on(events.PROFILE_SELECTED, val => {
 events.on(events.RESPONSE_OUTPUT(api.types.GET_PRESET_INDEX), val => {
     if (profiles) {
         var index = parseInt(val);
-        var profileId = profiles[index].profileId;
+        profileId = profiles[index].profileId;
         events.emit(events.PROFILE_SELECTED, profileId);
+    }
+});
+
+events.on(events.RESPONSE_OUTPUT(api.types.GET_MAX_VELOCITY), val => {
+    var maxSpeed = parseInt(val);
+    var {settings, profileId} = app.getProps();
+    if (settings && profileId) {
+        var index = settings.findIndex(p => p.profileId === profileId);
+        if (index != -1) { 
+            settings[index].maxSpeed = maxSpeed;
+            app.setProps({settings});   
+        }
     }
 });
 
