@@ -45,6 +45,8 @@ const types = {
     GET_ENCODER: 'e', 'e': 'GET_ENCODER',
     SAVE_CONFIGS: 'u', 'u': 'SAVE_CONFIGS',
     RELOAD_CONFIGS: 'x', 'x': 'RELOAD_CONFIGS',
+    EXPORT_EEPROM: 'g', 'g': 'EXPORT_EEPROM',
+    IMPORT_EEPROM: 'G', 'G': 'IMPORT_EEPROM',
     INVALID_COMMAND: '`', '`': 'INVALID_COMMAND',
 };
 
@@ -133,7 +135,23 @@ module.exports = {
             setTimeout(() => {
                 events.off(events.RESPONSE_OUTPUT(key), cb);
                 err(new Error(`timeout on key:${types[key] || key}`));
-            }, 100);
+            }, 400);
+        });
+    },
+
+    _getApiPromiseWithVal(key, val, callback) {
+        return new Promise((ok, err) => {
+            this.command(key + " " + val);
+
+            const cb = (v) => {
+                ok(callback(v));
+            };
+
+            events.once(events.RESPONSE_OUTPUT(key), cb);
+            setTimeout(() => {
+                events.off(events.RESPONSE_OUTPUT(key), cb);
+                err(new Error(`timeout on key:${types[key] || key}`));
+            }, 400);
         });
     },
 
@@ -149,7 +167,23 @@ module.exports = {
             setTimeout(() => {
                 events.off(events.RESPONSE_OK(key[0]), cb);
                 err(new Error(`timeout on key:${types[key[0]] || key[0]}`));
-            }, 100);
+            }, 400);
+        });
+    },
+
+    _getApiOkPromiseWithVal(key, val) {
+        return new Promise((ok, err) => {
+            this.command(key + " " + val);
+
+            const cb = (v) => {
+                ok(v);
+            };
+
+            events.once(events.RESPONSE_OK(key[0]), cb);
+            setTimeout(() => {
+                events.off(events.RESPONSE_OK(key[0]), cb);
+                err(new Error(`timeout on key:${types[key[0]] || key[0]}`));
+            }, 400);
         });
     },
 
@@ -196,7 +230,7 @@ module.exports = {
     },
 
     setStartInCal(val) {
-        return this._getApiOkPromise(`${types.SET_START_STATE} ${val ? "1" : "0"}`);
+        return this._getApiOkPromiseWithVal(types.SET_START_STATE, val ? "1" : "0");
     },
 
     getStartInCal() {
@@ -205,7 +239,7 @@ module.exports = {
     },
 
     setMaxSpeed(val) {
-        return this._getApiOkPromise(`${types.SET_MAX_VELOCITY} ${val}`);
+        return this._getApiOkPromiseWithVal(types.SET_MAX_VELOCITY, val);
     },
 
     getMaxSpeed() {
@@ -213,7 +247,7 @@ module.exports = {
     },
 
     setPresetIndex(val) {
-        return this._getApiOkPromise(`${types.SET_PRESET_INDEX} ${val}`);
+        return this._getApiOkPromiseWithVal(types.SET_PRESET_INDEX, val);
     },
 
     getPresetIndex() {
@@ -221,7 +255,7 @@ module.exports = {
     },
 
     setId(val) {
-        return this._getApiOkPromise(`${types.SET_ID} ${val}`);
+        return this._getApiOkPromiseWithVal(types.SET_ID, val);
     },
 
     getId() {
@@ -232,7 +266,7 @@ module.exports = {
         if (val.length > NAME_MAX_LENGTH) {
             throw new Error("Tried to set a name that was too long.");
         }
-        return this._getApiOkPromise(`${types.SET_NAME} ${val}`);
+        return this._getApiOkPromiseWithVal(types.SET_NAME, val);
     },
 
     getName() {
@@ -240,7 +274,7 @@ module.exports = {
     },
 
     setChannel(val) {
-        return this._getApiOkPromise(`${types.SET_CHANNEL} ${val}`);
+        return this._getApiOkPromiseWithVal(types.SET_CHANNEL, val);
     },
 
     getChannel() {
@@ -248,7 +282,7 @@ module.exports = {
     },
 
     setAccel(val) {
-        return this._getApiOkPromise(`${types.SET_ACCEL} ${val}`);
+        return this._getApiOkPromiseWithVal(types.SET_ACCEL, val);
     },
 
     getAccel() {
@@ -257,6 +291,42 @@ module.exports = {
 
     saveConfigs() {
         return this._getApiOkPromise(types.SAVE_CONFIGS);
+    },
+
+    exportEeprom() {
+        var start = 0;
+        var buffer = "";
+        var handler = v => {
+            if (v.length) {
+                start += v.length / 2;
+                buffer += v;
+                return this._getApiPromiseWithVal(types.EXPORT_EEPROM, start, v => v)
+                    .then(handler);
+            } else {
+                return buffer;
+            }
+        };
+
+        return this._getApiPromiseWithVal(types.EXPORT_EEPROM, start, v => v)
+            .then(handler);
+    },
+
+    importEeprom(val) {
+        const scanLength = 16;
+        var start = 0;
+        var handler = () => {
+            var hexStart = start * 2;
+            var hexEnd = hexStart + (scanLength * 2);
+            var slice = val.slice(hexStart, hexEnd);
+            if (slice.length) {
+                var payload = `${start} ${slice.length / 2} ${slice}`;
+                start += slice.length / 2;
+                return this._getApiOkPromiseWithVal(types.IMPORT_EEPROM, payload)
+                    .then(handler);
+            }
+        };
+
+        return handler();
     },
 
     reloadConfigs() {

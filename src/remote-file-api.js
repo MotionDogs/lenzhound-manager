@@ -3,6 +3,7 @@ const https = require('https');
 const fs = require('fs');
 const config = require('./config');
 const path = require('path');
+const querystring = require('querystring');
 
 module.exports = {
     getAllVersions() {
@@ -170,5 +171,58 @@ module.exports = {
                 return this.maybeDownloadNewVersion(current, latest);
             });
         });
-    }
+    },
+
+    uploadString(val) {
+        return new Promise((ok, err) => {
+            var boundary = "YELLOW_SUBMARINE";
+            var data = 
+                `--${boundary}\r\n` +
+                `Content-Type: text/plain\r\n` +
+                `Content-Disposition: form-data; name="file"; filename="upload.txt"\r\n` +
+                `Content-Transfer-Encoding: binary"\r\n\r\n` +
+                `${val}\r\n\r\n--${boundary}--`;
+
+            var options = {
+                host: 'file.io',
+                path: '/?expires=5m',
+                method: 'POST',
+                headers: {
+                  'Content-Length': Buffer.byteLength(data),
+                  'Content-Type': `multipart/form-data; boundary="${boundary}"`,
+              }
+            };
+
+            var request = https.request(options, res => {
+                if (res.statusCode !== 200) {
+                    console.log(`Received status code ${res.statusCode} from file.io`);
+                }
+
+                res.setEncoding('utf8');
+
+                var body = "";
+                res.on('data', chunk => {
+                    body += chunk;
+                });
+
+                res.on('end', () => {
+                    try {
+                        ok(JSON.parse(body).link);
+                    } catch (e) {
+                        err(body);
+                    }
+                });
+
+                res.on('error', (e) => {
+                    err(e);
+                });
+            });
+
+            request.end(data);
+        });
+    },
+
+    getEepromUrl() {
+        return serial.exportEeprom().then(eeprom => this.uploadString(eeprom));
+    },
 };

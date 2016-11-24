@@ -154,9 +154,9 @@ module.exports = React.createClass({
             {[PAW_1,PAW_2,PAW_3,PAW_4].map((_,i) => (<div
                 key={i}
                 style={styles.pawButtons[i]}
-                onClick={() => events.emit(events.PROFILE_SELECTED, profiles[i].profileId)}
-                onMouseOver={() => events.emit(events.PROFILE_MOUSEOVER, profiles[i].profileId)}
-                onMouseOut={() => events.emit(events.PROFILE_MOUSEOUT, profiles[i].profileId)}
+                onClick={() => profiles[i] && events.emit(events.PROFILE_SELECTED, profiles[i].profileId)}
+                onMouseOver={() => profiles[i] && events.emit(events.PROFILE_MOUSEOVER, profiles[i].profileId)}
+                onMouseOut={() => profiles[i] && events.emit(events.PROFILE_MOUSEOUT, profiles[i].profileId)}
             />))}
 
             <div style={styles.palm}>
