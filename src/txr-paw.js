@@ -18,6 +18,7 @@ module.exports = React.createClass({
         return {
             navOpen: false,
             buttonHovers: new Array(btn_count),
+            LEDStatuses: {},
             pot: 0,
             potFound: false,
         };
@@ -37,14 +38,24 @@ module.exports = React.createClass({
 
             this.setState({buttonHovers: {[index]: val}});
         };
+        this.setLedStatus = val => led => {
+            var {LEDStatuses} = this.state;
+            this.setState({LEDStatuses: Object.assign({}, LEDStatuses, {[led]: val})});
+        };
 
         events.on(events.RESPONSE_OUTPUT('p'), this.setPot);
         events.on(events.PROFILE_MOUSEOVER, this.setProfileHover(true));
         events.on(events.PROFILE_MOUSEOUT, this.setProfileHover(false));
+        events.on(events.LED_ON, this.setLedStatus(true));
+        events.on(events.LED_OFF, this.setLedStatus(false));
     },
 
     componentWillUnmount() {
         events.off("RESPONSE_OUTPUT:p", this.setPot);
+        events.off(events.PROFILE_MOUSEOVER);
+        events.off(events.PROFILE_MOUSEOUT);
+        events.off(events.LED_ON);
+        events.off(events.LED_OFF);
     },
 
     render() {
@@ -66,12 +77,48 @@ module.exports = React.createClass({
             background: '#333',
         };
 
+        const pawLEDStyleBase = {
+            display: 'inline-block',
+            position: 'relative',
+            borderRadius: '50%',
+            width: 10,
+            height: 10,
+        };
+
         const potPosition = ((this.state.pot - 512) / 1024) * 0.77;
 
-        const buttonHovers = this.state.buttonHovers;
+        const { buttonHovers, LEDStatuses } = this.state;
 
         const shadow = (i) => buttonHovers[i] ?
             '0 0 5px #fff' : 'none';
+
+        const pawLED = [
+            serial.leds.PAW_BUTTON_1,
+            serial.leds.PAW_BUTTON_2,
+            serial.leds.PAW_BUTTON_3,
+            serial.leds.PAW_BUTTON_4,
+        ];
+
+
+    // background: rgb(204,255,144);
+    // box-shadow: 0 0 5px rgba(204,255,144,0.6);
+
+        const LEDColor = {
+            [serial.leds.PAW_BUTTON_1]: "rgb(255, 100, 100)",
+            [serial.leds.PAW_BUTTON_2]: "rgb(255, 158, 89)",
+            [serial.leds.PAW_BUTTON_3]: "rgb(255, 158, 89)",
+            [serial.leds.PAW_BUTTON_4]: "rgb(204, 255, 144)",
+        };
+
+        const LEDShadow = {
+            [serial.leds.PAW_BUTTON_1]: "0 0 5px rgba(255, 100, 100, 0.6)",
+            [serial.leds.PAW_BUTTON_2]: "0 0 5px rgba(255, 158, 89, 0.6)",
+            [serial.leds.PAW_BUTTON_3]: "0 0 5px rgba(255, 158, 89, 0.6)",
+            [serial.leds.PAW_BUTTON_4]: "0 0 5px rgba(204, 255, 144, 0.6)",
+        };
+
+        const pawLEDColor = (i) => LEDStatuses[pawLED[i]] ? LEDColor[pawLED[i]] : "#555";
+        const pawLEDShadow = (i) => LEDStatuses[pawLED[i]] ? LEDShadow[pawLED[i]] : "none";
 
         const styles = {
             base: {
@@ -87,6 +134,12 @@ module.exports = React.createClass({
                 {...pawButtonStyleBase, marginLeft: 8, boxShadow: shadow(1) },
                 {...pawButtonStyleBase, marginLeft: 11, boxShadow: shadow(2) },
                 {...pawButtonStyleBase, marginLeft: 8 , top: 16, boxShadow: shadow(3)},
+            ],
+            pawLEDs: [
+                {...pawLEDStyleBase, marginLeft: 28, top: -65, background: pawLEDColor(0), boxShadow: pawLEDShadow(0) },
+                {...pawLEDStyleBase, marginLeft: 24, top: -76, background: pawLEDColor(1), boxShadow: pawLEDShadow(1) },
+                {...pawLEDStyleBase, marginLeft: 76, top: -76, background: pawLEDColor(2), boxShadow: pawLEDShadow(2) },
+                {...pawLEDStyleBase, marginLeft: 24 , top: -65, background: pawLEDColor(3), boxShadow: pawLEDShadow(3) },
             ],
             canvas: {
                 position: 'absolute',
@@ -157,6 +210,11 @@ module.exports = React.createClass({
                 onClick={() => profiles[i] && events.emit(events.PROFILE_SELECTED, profiles[i].profileId)}
                 onMouseOver={() => profiles[i] && events.emit(events.PROFILE_MOUSEOVER, profiles[i].profileId)}
                 onMouseOut={() => profiles[i] && events.emit(events.PROFILE_MOUSEOUT, profiles[i].profileId)}
+            />))}
+
+            {[PAW_1,PAW_2,PAW_3,PAW_4].map((_,i) => (<div
+                key={i}
+                style={styles.pawLEDs[i]}
             />))}
 
             <div style={styles.palm}>

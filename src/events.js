@@ -16,6 +16,9 @@ events.PROFILE_SELECTED = "PROFILE_SELECTED";
 events.PROFILE_MOUSEOVER = "PROFILE_MOUSEOVER";
 events.PROFILE_MOUSEOUT = "PROFILE_MOUSEOUT";
 
+events.LED_ON = "LED_ON";
+events.LED_OFF = "LED_OFF";
+
 events.RESPONSE_OUTPUT = (val) => "RESPONSE_OUTPUT:" + val;
 events.RESPONSE_OK = (val) => "RESPONSE_OK:" + val;
 

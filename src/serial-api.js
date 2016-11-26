@@ -17,6 +17,19 @@ const roles = {
 
 const NAME_MAX_LENGTH = 20;
 
+const ledStates = {
+    OFF: 0,
+    ON: 1,
+    TOGGLE: 2,
+};
+
+const leds = {
+    PAW_BUTTON_1: 3,  // Red LED
+    PAW_BUTTON_2: 5,  // Amber #1 LED
+    PAW_BUTTON_3: 6,  // Green LED
+    PAW_BUTTON_4: 9,  // Green LED
+};
+
 const types = {
     ECHO: 'e', 'e': 'ECHO',
     GET_VERSION: 'v', 'v': 'GET_VERSION',
@@ -47,6 +60,7 @@ const types = {
     RELOAD_CONFIGS: 'x', 'x': 'RELOAD_CONFIGS',
     EXPORT_EEPROM: 'g', 'g': 'EXPORT_EEPROM',
     IMPORT_EEPROM: 'G', 'G': 'IMPORT_EEPROM',
+    GET_LED: 'l', 'l': 'GET_LED',
     INVALID_COMMAND: '`', '`': 'INVALID_COMMAND',
 };
 
@@ -421,5 +435,9 @@ module.exports = {
         });
     },
 
-    types
+    types,
+
+    ledStates,
+
+    leds,
 }

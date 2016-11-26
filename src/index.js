@@ -238,6 +238,20 @@ events.on(events.RESPONSE_OUTPUT(api.types.GET_PRESET_INDEX), val => {
     }
 });
 
+events.on(events.RESPONSE_OUTPUT(api.types.GET_LED), val => {
+    var parsed = parseInt(val);
+    var status = (parsed >> 8) & 0xff;
+    var led = parsed & 0xff;
+
+    if (status == api.ledStates.OFF) {
+        events.emit(events.LED_OFF, led);
+    } else if (status == api.ledStates.ON) {
+        events.emit(events.LED_ON, led);
+    } else {
+        throw new Error("Unexpected LED status change")
+    }
+});
+
 events.on(events.RESPONSE_OUTPUT(api.types.GET_MAX_VELOCITY), val => {
     var maxSpeed = parseInt(val);
     var {settings, profileId} = app.getProps();
