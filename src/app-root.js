@@ -47,7 +47,7 @@ var Root = React.createClass({
             settings,
             pawPluggedIn,
             dogbonePluggedIn,
-            unknownVersion,
+            badVersion,
             profileId,
             loading,
             newTxrVersion,
@@ -55,7 +55,7 @@ var Root = React.createClass({
             mode
         } = this.props;
 
-        const pluggedIn = pawPluggedIn || dogbonePluggedIn || unknownVersion;
+        const pluggedIn = pawPluggedIn || dogbonePluggedIn || badVersion;
         const newVersion = newTxrVersion || newRxrVersion;
 
         const listMode = mode === 'list';
@@ -81,7 +81,7 @@ var Root = React.createClass({
 
         const styles = {
             rootDiv: {
-                background: unknownVersion ?
+                background: badVersion ?
                     '' : 'url(content/lenzhound-bg.svg)',
                 position: 'absolute',
                 width: '100%',
@@ -164,11 +164,11 @@ var Root = React.createClass({
                 fontFamily: 'Roboto',
             },
             profileList: {},
-            unknownVersionWrapperOuter: {
+            badVersionWrapperOuter: {
                 width: '100%',
                 height: '100%',
             },
-            unknownVersionWrapper: {
+            badVersionWrapper: {
                 width: 290,
                 position: 'absolute',
                 top: '50%',
@@ -196,26 +196,28 @@ var Root = React.createClass({
             },
         };
 
-        if (unknownVersion) {
+        if (badVersion) {
             return (
                 <div style={styles.rootDiv}>
-                    <div style={styles.unknownVersionWrapperOuter}>
-                        <div style={styles.unknownVersionWrapper}>
+                    <div style={styles.badVersionWrapperOuter}>
+                        <div style={styles.badVersionWrapper}>
                             <div style={styles.oldVersionDesc}>
-                                {resources.oldVersionDesc}
+                                {!(dogbonePluggedIn || pawPluggedIn) && resources.unknownVersionDesc}
+                                {pawPluggedIn && resources.oldPawDesc}
+                                {dogbonePluggedIn && resources.oldDogboneDesc}
                             </div>
-                            <RaisedButton
+                            {!dogbonePluggedIn && <RaisedButton
                                 disabled={loading}
                                 style={styles.uploadButton}
                                 label={resources.uploadTransmitter}
                                 primary={true}
-                                onMouseDown={onClicks.uploadTxr} />
-                            <RaisedButton
+                                onMouseDown={onClicks.uploadTxr} />}
+                            {!pawPluggedIn && <RaisedButton
                                 disabled={loading}
                                 style={styles.uploadButton}
                                 label={resources.uploadReceiver}
                                 primary={true}
-                                onMouseDown={onClicks.uploadRxr} />
+                                onMouseDown={onClicks.uploadRxr} />}
                             {loading && <div style={styles.circularProgressWrapper}>
                                 <CircularProgress
                                     color={Theme.palette.accent1Color}/>
@@ -273,17 +275,6 @@ var Root = React.createClass({
                 {pawSettingsSection}
                 {dogboneSettingsSection}
                 {profilesSection}
-                <div style={styles.uploadWrapper} onClick={onClicks.uploadIcon}>
-                    <FileUploadIcon style={styles.uploadIcon} />
-                    <span style={styles.uploadCopy}>
-                        {resources.uploadFirmware}
-                    </span>
-                    {loading &&
-                        <CircularProgress
-                            color={Theme.palette.accent1Color}
-                            size={0.5}
-                            style={styles.inlineCircularProgress}/>}
-                </div>
             </div>
         </div>
         );

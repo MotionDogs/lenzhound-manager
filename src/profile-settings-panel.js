@@ -9,7 +9,7 @@ const NavigateBefore = require('material-ui/lib/svg-icons/image/navigate-before'
 
 const MAX_MAX_SPEED = 1 << 15;
 const MAX_ACCEL = 32;
-const MAX_CHANNEL = 81;
+const MAX_CHANNEL = 30;
 
 module.exports = React.createClass({
     propTypes: {
@@ -95,7 +95,7 @@ module.exports = React.createClass({
                 disabled={channel === null}
                 value={clamp(channel || 0, 1, MAX_CHANNEL)}
                 transform={(v) => (v + 1) / MAX_CHANNEL}
-                invTransform={(v) => Math.round(v * MAX_CHANNEL)}
+                invTransform={(v) => Math.round(v * (MAX_CHANNEL - 1) + 1)}
                 onChange={callbacks.changeChannel}
             />
         </Paper>
@@ -117,7 +117,7 @@ module.exports = React.createClass({
                 disabled={maxSpeed === null}
                 value={clamp(maxSpeed || 0, 1, MAX_MAX_SPEED)}
                 transform={(v) => (v + 1) / (MAX_MAX_SPEED + 1)}
-                invTransform={(v) => Math.round(v * MAX_MAX_SPEED)}
+                invTransform={(v) => Math.round(v * (MAX_MAX_SPEED - 1) + 1)}
                 onChange={callbacks.changeMaxSpeed}
             />
 
@@ -126,7 +126,7 @@ module.exports = React.createClass({
                 disabled={accel === null}
                 value={clamp(accel || 0, 1, MAX_ACCEL)}
                 transform={(v) => (v + 1) / (MAX_ACCEL + 1)}
-                invTransform={(v) => Math.round(v * MAX_ACCEL)}
+                invTransform={(v) => Math.round(v * (MAX_ACCEL - 1) + 1)}
                 onChange={callbacks.changeAccel}
             />
 
@@ -135,7 +135,7 @@ module.exports = React.createClass({
                 disabled={channel === null}
                 value={clamp(channel || 0, 1, MAX_CHANNEL)}
                 transform={(v) => (v + 1) / MAX_CHANNEL}
-                invTransform={(v) => Math.round(v * MAX_CHANNEL)}
+                invTransform={(v) => Math.round(v * (MAX_CHANNEL-1) + 1)}
                 onChange={callbacks.changeChannel}
             />
 

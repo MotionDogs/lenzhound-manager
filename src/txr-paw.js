@@ -30,7 +30,7 @@ module.exports = React.createClass({
 
             this.setState({pot, potFound: true});
         }, 100);
-        this.setProfileHover = val => str => {
+        const setProfileHover = val => str => {
             const {profiles} = this.props;
             const hoveredProfileId = parseInt(str);
 
@@ -38,24 +38,29 @@ module.exports = React.createClass({
 
             this.setState({buttonHovers: {[index]: val}});
         };
-        this.setLedStatus = val => led => {
+        const setLEDStatus = val => led => {
             var {LEDStatuses} = this.state;
             this.setState({LEDStatuses: Object.assign({}, LEDStatuses, {[led]: val})});
         };
 
+        this.setProfileHoverOn = setProfileHover(true);
+        this.setProfileHoverOff = setProfileHover(false);
+        this.setLEDStatusOn = setLEDStatus(true);
+        this.setLEDStatusOff = setLEDStatus(false);
+
         events.on(events.RESPONSE_OUTPUT('p'), this.setPot);
-        events.on(events.PROFILE_MOUSEOVER, this.setProfileHover(true));
-        events.on(events.PROFILE_MOUSEOUT, this.setProfileHover(false));
-        events.on(events.LED_ON, this.setLedStatus(true));
-        events.on(events.LED_OFF, this.setLedStatus(false));
+        events.on(events.PROFILE_MOUSEOVER, this.setProfileHoverOn);
+        events.on(events.PROFILE_MOUSEOUT, this.setProfileHoverOff);
+        events.on(events.LED_ON, this.setLEDStatusOn);
+        events.on(events.LED_OFF, this.setLEDStatusOff);
     },
 
     componentWillUnmount() {
         events.off("RESPONSE_OUTPUT:p", this.setPot);
-        events.off(events.PROFILE_MOUSEOVER);
-        events.off(events.PROFILE_MOUSEOUT);
-        events.off(events.LED_ON);
-        events.off(events.LED_OFF);
+        events.off(events.PROFILE_MOUSEOVER, this.setProfileHoverOn);
+        events.off(events.PROFILE_MOUSEOUT, this.setProfileHoverOff);
+        events.off(events.LED_ON, this.setLEDStatusOn);
+        events.off(events.LED_OFF, this.setLEDStatusOff);
     },
 
     render() {

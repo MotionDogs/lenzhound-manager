@@ -41,28 +41,16 @@ events.on(events.SERIAL_PORT_OPEN, () => {
 
     poll(1000, stop => api.getRole().then(result => {
 
-        app.setProps({
-            unknownVersion: false,
-            pawPluggedIn: result === "PAW",
-            dogbonePluggedIn: result === "DOGBONE",
-            settings: []
-            // settings: {
-            //     profileId: 2,
-            //     startInCal: false,
-            //     maxSpeed: 24,
-            //     accel: 31,
-            //     channel: 5
-            // }
-        });
-
-
         if (result === "PAW") {
 
             remoteFileApi.getLaterTxrVersionIfExists().then(v => {
 
-                if (v) {
-                    app.setProps({newTxrVersion: v || null, unknownVersion: false});
-                }
+                app.setProps({
+                    badVersion: !!v,
+                    pawPluggedIn: true,
+                    settings: [],
+                    loading: false,
+                });
                 
                 var getSettingsRecursive = (settings,index) => (index < PAW_BUTTON_COUNT) ?
                     api.setPresetIndex(index).then(() => wait(10).then(() =>
@@ -99,9 +87,12 @@ events.on(events.SERIAL_PORT_OPEN, () => {
 
             remoteFileApi.getLaterRxrVersionIfExists().then(v => {
 
-                if (v) {
-                    app.setProps({newRxrVersion: v || null, unknownVersion: false});
-                }
+                app.setProps({
+                    badVersion: !!v,
+                    dogbonePluggedIn: true,
+                    settings: [],
+                    loading: false,
+                });
 
                 api.getChannel().then(channel => {
                     app.setProps({
@@ -119,12 +110,12 @@ events.on(events.SERIAL_PORT_OPEN, () => {
             });
 
         } else {
-            app.setProps({unknownVersion: true});
+            app.setProps({badVersion: true});
         }
 
         stop();
     }, err => {
-        app.setProps({unknownVersion: true});
+        app.setProps({badVersion: true});
     }));
 });
 
@@ -169,30 +160,11 @@ events.on(events.UPDATE_PROFILE, (payload) => {
     }
 });
 
-events.on(events.UPLOAD_TO_TXR, (version) => {
-    api.disableAutoConnect();
-    app.setProps({loading: true});
-    api.flashBoard(version.url).then(() => {
-        app.setProps({loading: false});
-        api.enableAutoConnect();
-    });
-});
-
-events.on(events.UPLOAD_TO_RXR, (version) => {
-    api.disableAutoConnect();
-    app.setProps({loading: true});
-    api.flashBoard(version.url).then(() => {
-        app.setProps({loading: false});
-        api.enableAutoConnect();
-    });
-});
-
 events.on(events.FORCE_UPLOAD_TXR, () => {
     api.disableAutoConnect();
     app.setProps({loading: true});
     remoteFileApi.getLaterTxrVersionIfExists().then(version => {
         api.flashBoard(version.url).then(() => {
-            app.setProps({loading: false});
             api.enableAutoConnect();
         });;
     });
@@ -203,7 +175,6 @@ events.on(events.FORCE_UPLOAD_RXR, () => {
     app.setProps({loading: true});
     remoteFileApi.getLaterRxrVersionIfExists().then(version => {
         api.flashBoard(version.url).then(() => {
-            app.setProps({loading: false});
             api.enableAutoConnect();
         });
     });
