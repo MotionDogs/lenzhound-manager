@@ -34,9 +34,6 @@ const wait = (time) => {
     return new Promise((ok,err) => setTimeout(() => ok(), time));
 };
 
-let profileId = null;
-let profiles = null;
-
 events.on(events.SERIAL_PORT_OPEN, () => {
 
     poll(1000, stop => api.getRole().then(result => {
@@ -50,6 +47,7 @@ events.on(events.SERIAL_PORT_OPEN, () => {
                     pawPluggedIn: true,
                     settings: [],
                     loading: false,
+                    profileId: null,
                 });
                 
                 var getSettingsRecursive = (settings,index) => (index < PAW_BUTTON_COUNT) ?
@@ -75,7 +73,6 @@ events.on(events.SERIAL_PORT_OPEN, () => {
 
                 api.getPresetIndex().then(index => {
                     getSettingsRecursive([],0).then((settings) => {
-                        profiles = settings;
                         api.setPresetIndex(index).then(() => {
                             app.setProps({ settings });
                         });
@@ -188,7 +185,6 @@ events.on(events.LIST_PROFILES, () => {
 });
 
 events.on(events.PROFILE_SELECTED, val => {
-    profileId = val;
     var props = app.getProps();
     var index = props.settings.findIndex(p => p.profileId === val);
     if (index != -1 && index < 4) {
@@ -202,9 +198,10 @@ events.on(events.PROFILE_SELECTED, val => {
 });
 
 events.on(events.RESPONSE_OUTPUT(api.types.GET_PRESET_INDEX), val => {
-    if (profiles) {
+    var profiles = app.getProps().settings;
+    if (profiles && profiles.length) {
         var index = parseInt(val);
-        profileId = profiles[index].profileId;
+        var {profileId} = profiles[index];
         events.emit(events.PROFILE_SELECTED, profileId);
     }
 });
