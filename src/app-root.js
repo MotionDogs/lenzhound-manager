@@ -86,6 +86,7 @@ var Root = React.createClass({
                 position: 'absolute',
                 width: '100%',
                 height: '100%',
+                backgroundSize: '100% 100%',
             },
             innerDiv: {
                 background: 'url(content/white_texture.png)',
