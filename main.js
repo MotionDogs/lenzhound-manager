@@ -3,20 +3,29 @@
 const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
-const fs = require('fs');
-const https = require('https');
+
+const path = require('path')
+const url = require('url')
 
 var mainWindow;
 
 const createWindow = function () {
+  let iconExtension = process.platform == 'darwin' ? 'png' : 'ico';
+
   mainWindow = new BrowserWindow({
       width: 770,
       height: 550,
       resizable: false,
       autoHideMenuBar: true,
+      title: "DIG Uploader Pro",
+      icon: __dirname + '/content/icon.' + iconExtension,
   });
-  mainWindow.loadURL('file://' + __dirname + '/index.html');
-  // mainWindow.webContents.openDevTools();
+  // and load the index.html of the app.
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'index.html'),
+    protocol: 'file:',
+    slashes: true
+  }));
 
   mainWindow.on('closed', function() {
     mainWindow = null;

@@ -49,7 +49,7 @@ events.on(events.SERIAL_PORT_OPEN, () => {
                     loading: false,
                     profileId: null,
                 });
-                
+
                 var getSettingsRecursive = (settings,index) => (index < PAW_BUTTON_COUNT) ?
                     api.setPresetIndex(index).then(() => wait(10).then(() =>
                     api.getId().then(profileId => wait(10).then(() =>
@@ -136,7 +136,7 @@ events.on(events.UPDATE_PROFILE, (payload) => {
     if (maxSpeed) {
         mergeProfile(profileId, {maxSpeed});
         api.setMaxSpeed(maxSpeed);
-        saveConfigsDebounced();   
+        saveConfigsDebounced();
     }
     if (accel) {
         mergeProfile(profileId, {accel});
