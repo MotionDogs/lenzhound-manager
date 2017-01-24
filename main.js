@@ -10,14 +10,14 @@ const url = require('url')
 var mainWindow;
 
 const createWindow = function () {
-  let iconExtension = process.platform == 'darwin' ? 'png' : 'ico';
+  let iconExtension = process.platform == 'darwin' ? 'icns' : 'ico';
 
   mainWindow = new BrowserWindow({
       width: 770,
       height: 550,
       resizable: false,
       autoHideMenuBar: true,
-      title: "DIG Uploader Pro",
+      title: "Lenzhound Leash",
       icon: __dirname + '/content/icon.' + iconExtension,
   });
   // and load the index.html of the app.

@@ -12,7 +12,6 @@ const CircularProgress = require('material-ui/lib/circular-progress');
 
 const events = require('./events');
 const LensProfile = require('./lens-profile');
-const LensProfileEditor = require('./lens-profile-editor');
 const Theme = require('./theme');
 
 module.exports = React.createClass({
@@ -88,20 +87,6 @@ module.exports = React.createClass({
                     />
                 )) : centeredLoader}
                 </List>
-
-                <div style={styles.createButtonWrapperOuter}>
-                    <FloatingActionButton style={styles.createButtonWrapper}>
-                        <ContentAdd />
-                    </FloatingActionButton>
-                </div>
-
-                <Dialog
-                  title="Create Profile"
-                  actions={modalActions}
-                  modal={true}
-                  open={this.state.modalIsOpen}>
-                  <LensProfileEditor />
-                </Dialog>
             </Paper>
         )
     }
