@@ -413,13 +413,12 @@ module.exports = {
     },
 
     flashBoard(url, progressMonitor) {
-        var parsed = path.parse(url);
-        var filepath = './downloads/' + parsed.base;
+        var filepath = remoteFileApi.getFilepathForUrl(url);
 
         var avrgirl = new Avrgirl({
             board: 'leonardo',
             port: port.comName,
-            debug: true,
+            debug: msg => console.log(msg),
         });
         port.close();
         port = null;
@@ -429,6 +428,9 @@ module.exports = {
                 if (e) {
                     err(e);
                 } else {
+                    if (url.startsWith("local-")) {
+                        remoteFileApi.clearLocalBuild();
+                    }
                     ok();
                 }
             });

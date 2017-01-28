@@ -5,6 +5,7 @@ const events = require('./lib/events');
 const api = require('./lib/serial-api');
 const remoteFileApi = require('./lib/remote-file-api');
 const _ = require('lodash');
+
 require('./lib/error-logger');
 
 const CONFIG_DEBOUNCE_MILLISECONDS = 1000;

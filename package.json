@@ -7,7 +7,7 @@
     "build": "babel ./src -d ./lib",
     "package-win32-x64": "electron-packager . \"Lenzhound Leash\" --platform=win32 --arch=x64 --icon=\"content/icon.ico\" --overwrite --asar=true",
     "package-osx-x64": "electron-packager . \"Lenzhound Leash\" --platform=darwin --arch=x64 --icon=\"content/icon.icns\" --overwrite --asar=true",
-    "start": "electron main.js"
+    "start": "electron main.js dev"
   },
   "keywords": [
     "lenzhound",

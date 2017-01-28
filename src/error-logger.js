@@ -1,6 +1,6 @@
 const config = require('./config');
 
-// Raven.config(config.ravenUrl).install();
+Raven.config(config.ravenUrl).install();
 
 window.onerror = function(message, source, lineno, colno, error) {
     Raven.captureException(error, {extra: {stack: error.stack}});

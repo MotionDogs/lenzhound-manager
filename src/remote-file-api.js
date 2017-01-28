@@ -1,9 +1,29 @@
-const serial = require('./serial-api');
 const https = require('https');
 const fs = require('fs');
-const config = require('./config');
 const path = require('path');
 const querystring = require('querystring');
+
+const config = require('./config');
+const serial = require('./serial-api');
+
+const homeDir = process.platform == 'darwin' ?
+    process.env.HOME : process.env.USERPROFILE;
+const dataDir = process.platform == 'darwin' ?
+    homeDir + "/Library/Lenzhound" :
+    homeDir + "/AppData/Local/Lenzhound";
+
+const LOCAL_TXR = "local-txr";
+const LOCAL_RXR = "local-rxr";
+
+fs.stat(dataDir, e => {
+    if (e) {
+        fs.mkdir(dataDir, e => {
+            if (e) {
+                throw new Error("panid:" + e);
+            }
+        });
+    }
+});
 
 module.exports = {
     getAllVersions() {
@@ -86,11 +106,11 @@ module.exports = {
             }
 
             return new Promise((ok, err) => {
-                fs.stat('./downloads', (e, s) => {
+                fs.stat(dataDir + '/downloads', (e, s) => {
                     if (e) {
-                        fs.mkdir('./downloads', (e) => {
+                        fs.mkdir(dataDir + '/downloads', (e) => {
                             if (e) {
-                                throw new Error('panic');
+                                throw new Error('panic: ' + e);
                             }
                             ok(latest);
                         });
@@ -107,14 +127,14 @@ module.exports = {
                 if (!latest) { return latest; }
 
                 var parsed = path.parse(latest.url);
-                var filePath = './downloads/' + parsed.base;
+                var filePath = dataDir + '/downloads/' + parsed.base;
 
                 return new Promise((ok, err) => {
                     fs.stat(filePath, (e, s) => {
                         if (e) {
                             https.get(latest.url, res => {
                                 if (res.statusCode !== 200) {
-                                    throw new Error('panic');
+                                    throw new Error('panic: statusCode == ' + res.statusCode);
                                 }
 
                                 var body = "";
@@ -146,6 +166,16 @@ module.exports = {
     },
 
     getLaterTxrVersionIfExists() {
+        if (config.devMode) {
+            return new Promise(ok => fs.stat(this.getFilepathForUrl(LOCAL_TXR), (e) => {
+                if (e) {
+                    ok(null);
+                } else {
+                    ok({ url: LOCAL_TXR });
+                }
+            }));
+        }
+
         return serial.getTxrVersion().then(v => {
             var splitVersion = v.split('.');
             var current = {
@@ -160,6 +190,16 @@ module.exports = {
     },
 
     getLaterRxrVersionIfExists() {
+        if (config.devMode) {
+            return new Promise(ok => fs.stat(this.getFilepathForUrl(LOCAL_RXR), (e) => {
+                if (e) {
+                    ok(null);
+                } else {
+                    ok({ url: LOCAL_RXR });
+                }
+            }));
+        }
+
         return serial.getRxrVersion().then(v => {
             var splitVersion = v.split('.');
             var current = {
@@ -224,5 +264,21 @@ module.exports = {
 
     getEepromUrl() {
         return serial.exportEeprom().then(eeprom => this.uploadString(eeprom));
+    },
+
+    getFilepathForUrl(url) {
+        if (url == "local-txr") {
+            return homeDir + "/.lenzhound/build/Txr.ino.hex";
+        } else if (url == "local-rxr") {
+            return homeDir + "/.lenzhound/build/Rxr.ino.hex";
+        }
+
+        var parsed = path.parse(url);
+        return dataDir + '/downloads/' + parsed.base;
+    },
+
+    clearLocalBuild() {
+        fs.unlink(homeDir + "/.lenzhound/build/Txr.ino.hex", e => {});
+        fs.unlink(homeDir + "/.lenzhound/build/Rxr.ino.hex", e => {});
     },
 };

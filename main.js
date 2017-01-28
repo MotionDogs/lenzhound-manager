@@ -4,10 +4,10 @@ const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 
-const path = require('path')
-const url = require('url')
+const path = require('path');
+const url = require('url');
 
-var mainWindow;
+let mainWindow;
 
 const createWindow = function () {
   let iconExtension = process.platform == 'darwin' ? 'icns' : 'ico';
