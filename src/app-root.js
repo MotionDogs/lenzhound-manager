@@ -52,7 +52,8 @@ var Root = React.createClass({
             loading,
             newTxrVersion,
             newRxrVersion,
-            mode
+            mode,
+            startInCal,
         } = this.props;
 
         const pluggedIn = pawPluggedIn || dogbonePluggedIn || badVersion;
@@ -76,6 +77,9 @@ var Root = React.createClass({
             },
             uploadRxr: () => {
                 events.emit(events.FORCE_UPLOAD_RXR);
+            },
+            skipUpload: () => {
+                events.emit(events.SKIP_UPLOADING);
             },
         };
 
@@ -219,6 +223,12 @@ var Root = React.createClass({
                                 label={resources.uploadReceiver}
                                 primary={true}
                                 onMouseDown={onClicks.uploadRxr} />}
+                            <RaisedButton
+                                disabled={loading}
+                                style={styles.uploadButton}
+                                label={resources.skipUploading}
+                                primary={false}
+                                onMouseDown={onClicks.skipUpload} />   
                             {loading && <div style={styles.circularProgressWrapper}>
                                 <CircularProgress
                                     color={Theme.palette.accent1Color}/>
@@ -263,7 +273,7 @@ var Root = React.createClass({
         var profilesSection = (
             <div style={styles.profilesSection}>
                 <div style={styles.profileList}>
-                    {<ProfileList profiles={settings}/>}
+                    {<ProfileList profiles={settings} startInCal={startInCal}/>}
                 </div>
             </div>
         );

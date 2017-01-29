@@ -15,6 +15,10 @@ const dataDir = process.platform == 'darwin' ?
 const LOCAL_TXR = "local-txr";
 const LOCAL_RXR = "local-rxr";
 
+const LOCAL_BUILD_PATH = homeDir + "/.lenzhound/build";
+const LOCAL_TXR_PATH = homeDir + "/.lenzhound/build/Txr.ino.hex";
+const LOCAL_RXR_PATH = homeDir + "/.lenzhound/build/Rxr.ino.hex";
+
 fs.stat(dataDir, e => {
     if (e) {
         fs.mkdir(dataDir, e => {
@@ -26,6 +30,8 @@ fs.stat(dataDir, e => {
 });
 
 module.exports = {
+    fsWatchers: [],
+
     getAllVersions() {
         return new Promise((ok, err) => {
             var options = {
@@ -167,7 +173,7 @@ module.exports = {
 
     getLaterTxrVersionIfExists() {
         if (config.devMode) {
-            return new Promise(ok => fs.stat(this.getFilepathForUrl(LOCAL_TXR), (e) => {
+            return new Promise(ok => fs.stat(LOCAL_TXR_PATH, (e) => {
                 if (e) {
                     ok(null);
                 } else {
@@ -191,7 +197,7 @@ module.exports = {
 
     getLaterRxrVersionIfExists() {
         if (config.devMode) {
-            return new Promise(ok => fs.stat(this.getFilepathForUrl(LOCAL_RXR), (e) => {
+            return new Promise(ok => fs.stat(LOCAL_RXR_PATH, (e) => {
                 if (e) {
                     ok(null);
                 } else {
@@ -268,9 +274,9 @@ module.exports = {
 
     getFilepathForUrl(url) {
         if (url == "local-txr") {
-            return homeDir + "/.lenzhound/build/Txr.ino.hex";
+            return LOCAL_TXR_PATH;
         } else if (url == "local-rxr") {
-            return homeDir + "/.lenzhound/build/Rxr.ino.hex";
+            return LOCAL_RXR_PATH;
         }
 
         var parsed = path.parse(url);
@@ -278,7 +284,19 @@ module.exports = {
     },
 
     clearLocalBuild() {
-        fs.unlink(homeDir + "/.lenzhound/build/Txr.ino.hex", e => {});
-        fs.unlink(homeDir + "/.lenzhound/build/Rxr.ino.hex", e => {});
+        this.fsWatcher.close();
+        fs.unlink(LOCAL_TXR_PATH, e => {});
+        fs.unlink(LOCAL_RXR_PATH, e => {});
+        this.watchForLocalBuildChanges();
+    },
+
+    watchForLocalBuildChanges() {
+        if (!config.devMode) {
+            return;
+        }
+        
+        this.fsWatcher = fs.watch(LOCAL_BUILD_PATH, () => {
+            events.emit(events.LOCAL_BUILD_CHANGED);
+        });
     },
 };

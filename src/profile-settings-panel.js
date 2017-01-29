@@ -138,14 +138,6 @@ module.exports = React.createClass({
                 invTransform={(v) => Math.round(v * (MAX_CHANNEL-1) + 1)}
                 onChange={callbacks.changeChannel}
             />
-
-            <Checkbox
-              label="Start in calibration mode"
-              labelPosition='left'
-              disabled={startInCal === null}
-              onCheck={callbacks.toggleStartInCal}
-              defaultChecked={startInCal || false}
-            />
         </Paper>
         )
     }

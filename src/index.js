@@ -21,13 +21,13 @@ const poll = (period, lambda) => {
 }
 
 const mergeProfile = (profileId, settings) => {
-    var props = app.getProps();
-    var index = props.settings.findIndex(p => p.profileId === profileId);
-    var oldSettings = props.settings[index];
-    var profiles = props.settings.slice(0, index)
+    const props = app.getProps();
+    const index = props.settings.findIndex(p => p.profileId === profileId);
+    const oldSettings = props.settings[index];
+    const profiles = props.settings.slice(0, index)
         .concat([Object.assign({}, oldSettings, settings)])
         .concat(props.settings.slice(index+1));
-    var newProps = Object.assign({}, props, {settings:profiles});
+    const newProps = Object.assign({}, props, {settings:profiles});
     app.setProps(newProps);
 };
 
@@ -36,75 +36,72 @@ const wait = (time) => {
 };
 
 events.on(events.SERIAL_PORT_OPEN, () => {
+    poll(1000, async stop => {
+        const role = await api.getRole();
 
-    poll(1000, stop => api.getRole().then(result => {
+        if (role === "PAW") {
+            const newVersion = await remoteFileApi.getLaterTxrVersionIfExists();
 
-        if (result === "PAW") {
-
-            remoteFileApi.getLaterTxrVersionIfExists().then(v => {
-
-                app.setProps({
-                    badVersion: !!v,
-                    pawPluggedIn: true,
-                    settings: [],
-                    loading: false,
-                    profileId: null,
-                });
-
-                var getSettingsRecursive = (settings,index) => (index < PAW_BUTTON_COUNT) ?
-                    api.setPresetIndex(index).then(() => wait(10).then(() =>
-                    api.getId().then(profileId => wait(10).then(() =>
-                    api.getStartInCal().then(startInCal => wait(10).then(() =>
-                    api.getMaxSpeed().then(maxSpeed =>  wait(10).then(() =>
-                    api.getAccel().then(accel => wait(10).then(() =>
-                    api.getChannel().then(channel => wait(10).then(() =>
-                    api.getName().then(profileName => wait(10).then(() => {
-
-                        settings.push({
-                            profileId,
-                            profileName,
-                            startInCal,
-                            maxSpeed,
-                            accel,
-                            channel,
-                        });
-
-                        return getSettingsRecursive(settings, index + 1)
-                    })))))))))))))) : settings;
-
-                api.getPresetIndex().then(index => {
-                    getSettingsRecursive([],0).then((settings) => {
-                        api.setPresetIndex(index).then(() => {
-                            app.setProps({ settings });
-                        });
-                    });
-                });
+            app.setProps({
+                badVersion: !!newVersion,
+                pawPluggedIn: true,
+                settings: [],
+                loading: false,
+                profileId: null,
             });
 
-        } else if (result === "DOGBONE") {
+            const index = await api.getPresetIndex();
+            const startInCal = await api.getStartInCal();
+            const settings = [];
 
-            remoteFileApi.getLaterRxrVersionIfExists().then(v => {
+            for (var i = 0; i < PAW_BUTTON_COUNT; i++) {
+                await api.setPresetIndex(i);
 
-                app.setProps({
-                    badVersion: !!v,
-                    dogbonePluggedIn: true,
-                    settings: [],
-                    loading: false,
+                const profileId = await api.getId();
+                await wait(10);
+                const maxSpeed = await api.getMaxSpeed();
+                await wait(10);
+                const accel = await api.getAccel();
+                await wait(10);
+                const channel = await api.getChannel();
+                await wait(10);
+                const profileName = await api.getName();
+                await wait(10);
+
+                settings.push({
+                    profileId,
+                    profileName,
+                    maxSpeed,
+                    accel,
+                    channel,
                 });
+            }
 
-                api.getChannel().then(channel => {
-                    app.setProps({
-                        profileId: 1,
-                        settings: [{
-                            profileId: 1,
-                            profileName: null,
-                            startInCal: null,
-                            maxSpeed: null,
-                            accel: null,
-                            channel,
-                        }]
-                    });
-                });
+            await api.setPresetIndex(index);
+            app.setProps({ startInCal, settings });
+        } else if (role === "DOGBONE") {
+
+            const newVersion = await remoteFileApi.getLaterRxrVersionIfExists();
+
+            app.setProps({
+                badVersion: !!newVersion,
+                dogbonePluggedIn: true,
+                settings: [],
+                loading: false,
+            });
+
+            const channel = await api.getChannel();
+
+            app.setProps({
+                profileId: 1,
+                settings: [{
+                    profileId: 1,
+                    profileName: null,
+                    startInCal: null,
+                    maxSpeed: null,
+                    accel: null,
+                    channel,
+                }]
             });
 
         } else {
@@ -114,7 +111,7 @@ events.on(events.SERIAL_PORT_OPEN, () => {
         stop();
     }, err => {
         app.setProps({badVersion: true});
-    }));
+    });
 });
 
 events.on(events.SERIAL_PORT_CLOSE, () => {
@@ -158,24 +155,24 @@ events.on(events.UPDATE_PROFILE, (payload) => {
     }
 });
 
-events.on(events.FORCE_UPLOAD_TXR, () => {
+events.on(events.FORCE_UPLOAD_TXR, async () => {
     api.disableAutoConnect();
     app.setProps({loading: true});
-    remoteFileApi.getLaterTxrVersionIfExists().then(version => {
-        api.flashBoard(version.url).then(() => {
-            api.enableAutoConnect();
-        });;
-    });
+
+    const version = await remoteFileApi.getLaterTxrVersionIfExists();
+    await api.flashBoard(version.url);
+
+    api.enableAutoConnect();
 });
 
-events.on(events.FORCE_UPLOAD_RXR, () => {
+events.on(events.FORCE_UPLOAD_RXR, async () => {
     api.disableAutoConnect();
     app.setProps({loading: true});
-    remoteFileApi.getLaterRxrVersionIfExists().then(version => {
-        api.flashBoard(version.url).then(() => {
-            api.enableAutoConnect();
-        });
-    });
+
+    const version = await remoteFileApi.getLaterRxrVersionIfExists();
+    await api.flashBoard(version.url);
+
+    api.enableAutoConnect();
 });
 
 events.on(events.RESPONSE_OUTPUT("*"), (val) => {
@@ -185,14 +182,14 @@ events.on(events.LIST_PROFILES, () => {
     app.setProps({profileId: null});
 });
 
-events.on(events.PROFILE_SELECTED, val => {
+events.on(events.PROFILE_SELECTED, async val => {
     var props = app.getProps();
     var index = props.settings.findIndex(p => p.profileId === val);
     if (index != -1 && index < 4) {
-        api.setPresetIndex(index).then(() =>
-        api.reloadConfigs().then(() => {
-            app.setProps({profileId: val});
-        }));
+        await api.setPresetIndex(index);
+        await api.reloadConfigs();
+
+        app.setProps({profileId: val});
     } else {
         app.setProps({profileId: val});
     }
@@ -233,6 +230,21 @@ events.on(events.RESPONSE_OUTPUT(api.types.GET_MAX_VELOCITY), val => {
     }
 });
 
+events.on(events.LOCAL_BUILD_CHANGED, async () => {
+    const ourMode = app.getProps().pawPluggedIn ? "Txr" : "Rxr";
+    const version = await remoteFileApi[`getLater${ourMode}VersionIfExists`]();
+
+    if (version) {
+        app.setProps({badVersion: true});
+    }
+});
+
+events.on(events.SKIP_UPLOADING, () => {
+    app.setProps({badVersion: false});
+});
+
 app.setProps({pawPluggedIn:false, settings: []});
 
 api.enableAutoConnect();
+
+remoteFileApi.watchForLocalBuildChanges();

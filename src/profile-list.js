@@ -9,6 +9,8 @@ const Dialog = require('material-ui/lib/dialog');
 const Paper = require('material-ui/lib/paper');
 const ContentAdd = require('material-ui/lib/svg-icons/content/add');
 const CircularProgress = require('material-ui/lib/circular-progress');
+const Checkbox = require('material-ui/lib/checkbox');
+const Divider = require('material-ui/lib/divider');
 
 const events = require('./events');
 const LensProfile = require('./lens-profile');
@@ -16,7 +18,8 @@ const Theme = require('./theme');
 
 module.exports = React.createClass({
     propTypes: {
-        profiles: React.PropTypes.array
+        profiles: React.PropTypes.array,
+        startInCal: React.PropTypes.bool,
     },
 
     getInitialState() {
@@ -32,7 +35,7 @@ module.exports = React.createClass({
     },
 
     render() {
-        var {profiles} = this.props;
+        var { profiles, startInCal } = this.props;
 
         var styles = {
             outerDiv: {
@@ -50,6 +53,10 @@ module.exports = React.createClass({
             },
             circularProgressWrapper: {
                 textAlign: 'center',
+            },
+            startInCalCheckbox: {
+                padding: 14,
+                width: 'calc(100% - 28px)',
             },
         };
 
@@ -74,6 +81,15 @@ module.exports = React.createClass({
             </div>
         );
 
+        const callbacks = {
+            toggleStartInCal: () => {
+                events.emit(events.UPDATE_PROFILE, {
+                    profileId: profileId,
+                    startInCal: !startInCal,
+                });  
+            },
+        };
+
         return (
             <Paper>
                 <List>
@@ -87,6 +103,17 @@ module.exports = React.createClass({
                     />
                 )) : centeredLoader}
                 </List>
+
+                <Divider/>
+
+                <Checkbox
+                  style={styles.startInCalCheckbox}
+                  label="Start in calibration mode"
+                  labelPosition='left'
+                  disabled={startInCal === null}
+                  onCheck={callbacks.toggleStartInCal}
+                  defaultChecked={startInCal || false}
+                />
             </Paper>
         )
     }

@@ -22,5 +22,7 @@ events.LED_OFF = "LED_OFF";
 events.RESPONSE_OUTPUT = (val) => "RESPONSE_OUTPUT:" + val;
 events.RESPONSE_OK = (val) => "RESPONSE_OK:" + val;
 
+events.LOCAL_BUILD_CHANGED = "LOCAL_BUILD_CHANGED";
+events.SKIP_UPLOADING = "SKIP_UPLOADING";
 
 module.exports = events;
