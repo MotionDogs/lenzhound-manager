@@ -137,7 +137,7 @@ var interval = null;
 module.exports = {
     getPort: () => port,
 
-    _getApiPromise(key, callback) {
+    async _getApiPromise(key, callback) {
         return new Promise((ok, err) => {
             this.command(key);
 
@@ -307,22 +307,21 @@ module.exports = {
         return this._getApiOkPromise(types.SAVE_CONFIGS);
     },
 
-    exportEeprom() {
-        var start = 0;
-        var buffer = "";
-        var handler = v => {
-            if (v.length) {
-                start += v.length / 2;
-                buffer += v;
-                return this._getApiPromiseWithVal(types.EXPORT_EEPROM, start, v => v)
-                    .then(handler);
-            } else {
-                return buffer;
-            }
-        };
+    async exportEeprom() {
+        const identity = x => x;
 
-        return this._getApiPromiseWithVal(types.EXPORT_EEPROM, start, v => v)
-            .then(handler);
+        let start = 0;
+        let buffer = "";
+        let response = await this._getApiPromiseWithVal(types.EXPORT_EEPROM, start, identity);
+
+        while (response.length) {
+            start += response.length / 2;
+            buffer += v;
+
+            response = await this._getApiPromiseWithVal(types.EXPORT_EEPROM, start, identity);
+        }
+
+        return response;
     },
 
     importEeprom(val) {
@@ -360,42 +359,36 @@ module.exports = {
         });
     },
 
-    getRxrVersion() {
-        return this.getRole().then(
-        role => {
+    async getRxrVersion() {
+        try {
+            const role = await this.getRole();
+
             if (role === "DOGBONE") {
-                return this._getApiPromise(types.GET_VERSION, v => v);
+                return await this._getApiPromise(types.GET_VERSION, v => v);
             } else if (role === "PAW") {
-                return this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
+                return await this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
             } else {
-                return new Promise((ok, err) => {
-                    ok("0.0");
-                });
+                return "0.0";
             }
-        }, err => {
-            return new Promise((ok, err) => {
-                ok("0.0");
-            });
-        });
+        } catch (e) {
+            return "0.0";
+        }
     },
 
-    getTxrVersion() {
-        return this.getRole().then(
-        role => {
+    async getTxrVersion() {
+        try {
+            const role = await this.getRole();
+
             if (role === "PAW") {
-                return this._getApiPromise(types.GET_VERSION, v => v);
+                return await this._getApiPromise(types.GET_VERSION, v => v);
             } else if (role === "DOGBONE") {
-                return this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
+                return await this._getApiPromise(types.GET_REMOTE_VERSION, v => v);
             } else {
-                return new Promise((ok, err) => {
-                    ok("0.0");
-                });
+                return "0.0";
             }
-        }, err => {
-            return new Promise((ok, err) => {
-                ok("0.0");
-            });
-        });
+        } catch (e) {
+            return "0.0";
+        }
     },
 
     turnVerboseLoggingOn() {

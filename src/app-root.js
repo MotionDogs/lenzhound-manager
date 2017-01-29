@@ -18,7 +18,7 @@ const ProfileSettingsPanel = require('./profile-settings-panel');
 const ProfileList = require('./profile-list');
 const Theme = require('./theme');
 
-var Root = React.createClass({
+const Root = React.createClass({
 
     propTypes: {
         settings: React.PropTypes.array,
@@ -239,22 +239,22 @@ var Root = React.createClass({
             );
         }
 
-        var dogboneSection = (
+        const dogboneSection = (
             <div style={styles.dogboneWrapper}>
                 <img style={styles.dogbone} src='content/lenzhound-dogbone.svg' />
             </div>
         );
 
-        var pawSection = (
+        const pawSection = (
             <div style={styles.pawWrapper}>
                 <TxrPaw style={styles.txrPaw} profiles={settings} {...this.props.paw}/>
             </div>
         );
 
-        var profile = settings.find(p =>
+        const profile = settings.find(p =>
             p.profileId == profileId);
 
-        var pawSettingsSection = pawPluggedIn && (
+        const pawSettingsSection = pawPluggedIn && (
             <div style={styles.pawSettingsSection}>
                 <div style={styles.settingsWrapper}>
                     {<ProfileSettingsPanel {...profile} dogbone={false}/>}
@@ -262,7 +262,7 @@ var Root = React.createClass({
             </div>
         );
 
-        var dogboneSettingsSection = dogbonePluggedIn && (
+        const dogboneSettingsSection = dogbonePluggedIn && (
             <div style={styles.dogboneSettingsSection}>
                 <div style={styles.settingsWrapper}>
                     {<ProfileSettingsPanel {...profile} dogbone={true}/>}
@@ -270,7 +270,7 @@ var Root = React.createClass({
             </div>
         );
 
-        var profilesSection = (
+        const profilesSection = (
             <div style={styles.profilesSection}>
                 <div style={styles.profileList}>
                     {<ProfileList profiles={settings} startInCal={startInCal}/>}
@@ -292,7 +292,7 @@ var Root = React.createClass({
     }
 });
 
-var props = {};
+const props = {};
 module.exports = {
     setProps(newProps) {
         props = _.merge(props, newProps);

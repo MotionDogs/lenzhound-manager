@@ -1,5 +1,5 @@
-var ee = require('event-emitter');
-var events = ee({});
+const ee = require('event-emitter');
+const events = ee({});
 
 events.SERIAL_PORT_OPEN = "SERIAL_PORT_OPEN";
 events.SERIAL_PORT_CLOSE = "SERIAL_PORT_CLOSE";

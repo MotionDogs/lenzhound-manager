@@ -183,8 +183,8 @@ events.on(events.LIST_PROFILES, () => {
 });
 
 events.on(events.PROFILE_SELECTED, async val => {
-    var props = app.getProps();
-    var index = props.settings.findIndex(p => p.profileId === val);
+    const props = app.getProps();
+    const index = props.settings.findIndex(p => p.profileId === val);
     if (index != -1 && index < 4) {
         await api.setPresetIndex(index);
         await api.reloadConfigs();
@@ -196,18 +196,18 @@ events.on(events.PROFILE_SELECTED, async val => {
 });
 
 events.on(events.RESPONSE_OUTPUT(api.types.GET_PRESET_INDEX), val => {
-    var profiles = app.getProps().settings;
+    const profiles = app.getProps().settings;
     if (profiles && profiles.length) {
-        var index = parseInt(val);
-        var {profileId} = profiles[index];
+        const index = parseInt(val);
+        const {profileId} = profiles[index];
         events.emit(events.PROFILE_SELECTED, profileId);
     }
 });
 
 events.on(events.RESPONSE_OUTPUT(api.types.GET_LED), val => {
-    var parsed = parseInt(val);
-    var status = (parsed >> 8) & 0xff;
-    var led = parsed & 0xff;
+    const parsed = parseInt(val);
+    const status = (parsed >> 8) & 0xff;
+    const led = parsed & 0xff;
 
     if (status == api.ledStates.OFF) {
         events.emit(events.LED_OFF, led);
@@ -219,10 +219,10 @@ events.on(events.RESPONSE_OUTPUT(api.types.GET_LED), val => {
 });
 
 events.on(events.RESPONSE_OUTPUT(api.types.GET_MAX_VELOCITY), val => {
-    var maxSpeed = parseInt(val);
-    var {settings, profileId} = app.getProps();
+    const maxSpeed = parseInt(val);
+    const {settings, profileId} = app.getProps();
     if (settings && profileId) {
-        var index = settings.findIndex(p => p.profileId === profileId);
+        const index = settings.findIndex(p => p.profileId === profileId);
         if (index != -1) { 
             settings[index].maxSpeed = maxSpeed;
             app.setProps({settings});   

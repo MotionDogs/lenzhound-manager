@@ -1,5 +1,6 @@
-const https = require('https');
-const fs = require('fs');
+const promisify = require('promisify-node');
+const https = promisify('https');
+const fs = promisify('fs');
 const path = require('path');
 const querystring = require('querystring');
 
@@ -19,15 +20,9 @@ const LOCAL_BUILD_PATH = homeDir + "/.lenzhound/build";
 const LOCAL_TXR_PATH = homeDir + "/.lenzhound/build/Txr.ino.hex";
 const LOCAL_RXR_PATH = homeDir + "/.lenzhound/build/Rxr.ino.hex";
 
-fs.stat(dataDir, e => {
-    if (e) {
-        fs.mkdir(dataDir, e => {
-            if (e) {
-                throw new Error("panid:" + e);
-            }
-        });
-    }
-});
+fs.stat(dataDir).then(null, () => fs.mkdir(dataDir).then(null, () => {
+    throw new Error("panid:" + e);
+}));
 
 module.exports = {
     fsWatchers: [],
@@ -65,181 +60,158 @@ module.exports = {
         });
     },
 
-    getLatestTxrVersion() {
-        var versionMatch = /txr\.ino\.leonardo-([0-9])+\.([0-9]+)\.hex/i;
-        return this.getAllVersions().then(vs => {
-            var filtered = vs.filter(v => versionMatch.test(v.name));
-            var mapped = filtered.map(v => {
-                var match = versionMatch.exec(v.name);
-                return {
-                    major: parseInt(match[1]),
-                    minor: parseInt(match[2]),
-                    url: v.download_url
-                };
-            });
-            mapped.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
-            var latest = mapped[0];
+    async getLatestTxrVersion() {
+        const versionMatch = /txr\.ino\.leonardo-([0-9])+\.([0-9]+)\.hex/i;
+        const vs = await this.getAllVersions();
 
-            return latest;
+        const filtered = vs.filter(v => versionMatch.test(v.name));
+        const mapped = filtered.map(v => {
+            const match = versionMatch.exec(v.name);
+            return {
+                major: parseInt(match[1]),
+                minor: parseInt(match[2]),
+                url: v.download_url
+            };
         });
+        mapped.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
+        const latest = mapped[0];
+
+        return latest;
     },
 
-    getLatestRxrVersion() {
-        var versionMatch = /rxr\.ino\.leonardo-([0-9])+\.([0-9]+)\.hex/i;
-        return this.getAllVersions().then(vs => {
-            var filtered = vs.filter(v => versionMatch.test(v.name));
-            var mapped = filtered.map(v => {
-                var match = versionMatch.exec(v.name);
-                return {
-                    major: parseInt(match[1]),
-                    minor: parseInt(match[2]),
-                    url: v.download_url
-                };
-            });
-            mapped.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
-            var latest = mapped[0];
+    async getLatestRxrVersion() {
+        const versionMatch = /rxr\.ino\.leonardo-([0-9])+\.([0-9]+)\.hex/i;
+        const vs = await this.getAllVersions();
 
-            return latest;
+        const filtered = vs.filter(v => versionMatch.test(v.name));
+        const mapped = filtered.map(v => {
+            const match = versionMatch.exec(v.name);
+            return {
+                major: parseInt(match[1]),
+                minor: parseInt(match[2]),
+                url: v.download_url
+            };
         });
+        mapped.sort((l,r) => (r.major - l.major) || (r.minor - l.minor));
+        const latest = mapped[0];
+
+        return latest;
     },
 
-    maybeDownloadNewVersion(current, latest) {
-        return new Promise((ok, err) => {
-            if (((latest.major - current.major) ||
-                (latest.minor - current.minor)) <= 0) {
-                ok(null);
-                return;
+    async maybeDownloadNewVersion(current, latest) {
+        if (((latest.major - current.major) ||
+            (latest.minor - current.minor)) <= 0) {
+            return null;
+        }
+
+        try {
+            await fs.stat(dataDir + '/downloads');
+        } catch (e) {
+            await fs.mkdir(dataDir + '/downloads');
+        }
+
+        if (!latest) { return latest; }
+
+        const parsed = path.parse(latest.url);
+        const filePath = dataDir + '/downloads/' + parsed.base;
+
+        try {
+            await fs.stat(filePath);
+        } catch (e) {
+            const res = await https.get(latest.url);
+
+            if (res.statusCode !== 200) {
+                throw new Error('panic: statusCode == ' + res.statusCode);
             }
 
-            return new Promise((ok, err) => {
-                fs.stat(dataDir + '/downloads', (e, s) => {
-                    if (e) {
-                        fs.mkdir(dataDir + '/downloads', (e) => {
-                            if (e) {
-                                throw new Error('panic: ' + e);
-                            }
-                            ok(latest);
-                        });
-                    } else {
-                        // TODO(doug): this is failing for some reason on OSX...
-                        // if (!s.isDirectory()) {
-                        //     throw new Error('panic');
-                        // }
+            let body = "";
+            res.on('data', chunk => {
+                body += chunk;
+            });
 
-                        ok(latest);
-                    }
+            await new Promise((ok, err) => {
+                res.on('error', (e) => {
+                    err(e);
                 });
-            }).then(latest => {
-                if (!latest) { return latest; }
 
-                var parsed = path.parse(latest.url);
-                var filePath = dataDir + '/downloads/' + parsed.base;
-
-                return new Promise((ok, err) => {
-                    fs.stat(filePath, (e, s) => {
-                        if (e) {
-                            https.get(latest.url, res => {
-                                if (res.statusCode !== 200) {
-                                    throw new Error('panic: statusCode == ' + res.statusCode);
-                                }
-
-                                var body = "";
-                                res.on('data', chunk => {
-                                    body += chunk;
-                                });
-
-                                res.on('end', () => {
-                                    fs.writeFile(filePath, body, 'utf8', (e) => {
-                                        if (e) throw e;
-                                        ok(latest);
-                                    });
-                                });
-
-                                res.on('error', (e) => {
-                                    err(e);
-                                });
-                            });
-                        } else {
-                            if (!s.isFile()) {
-                                throw new Error('panic');
-                            }
-                            ok(latest);
-                        }
-                    });
+                res.on('end', () => {
+                    ok();
                 });
-            }).then(latest => ok(latest));
-        });
-    },
+            });
 
-    getLaterTxrVersionIfExists() {
-        if (config.devMode) {
-            return new Promise(ok => fs.stat(LOCAL_TXR_PATH, (e) => {
-                if (e) {
-                    ok(null);
-                } else {
-                    ok({ url: LOCAL_TXR });
-                }
-            }));
+            await fs.writeFile(filePath, body, 'utf8');
         }
 
-        return serial.getTxrVersion().then(v => {
-            var splitVersion = v.split('.');
-            var current = {
-                major: parseInt(splitVersion[0]),
-                minor: parseInt(splitVersion[1]),
-            };
-
-            return this.getLatestTxrVersion().then(latest => {
-                return this.maybeDownloadNewVersion(current, latest);
-            });
-        });
+        return latest;
     },
 
-    getLaterRxrVersionIfExists() {
+    async getLaterTxrVersionIfExists() {
         if (config.devMode) {
-            return new Promise(ok => fs.stat(LOCAL_RXR_PATH, (e) => {
-                if (e) {
-                    ok(null);
-                } else {
-                    ok({ url: LOCAL_RXR });
-                }
-            }));
+            try {
+                await fs.stat(LOCAL_TXR_PATH);
+                return { url: LOCAL_TXR };
+            } catch (e) {
+                return null;
+            }
         }
 
-        return serial.getRxrVersion().then(v => {
-            var splitVersion = v.split('.');
-            var current = {
-                major: parseInt(splitVersion[0]),
-                minor: parseInt(splitVersion[1]),
-            };
+        const version = await serial.getTxrVersion();
+        const splitVersion = v.split('.');
 
-            return this.getLatestRxrVersion().then(latest => {
-                return this.maybeDownloadNewVersion(current, latest);
-            });
-        });
+        const current = {
+            major: parseInt(splitVersion[0]),
+            minor: parseInt(splitVersion[1]),
+        };
+
+        const latest = await this.getLatestTxrVersion();
+
+        return await this.maybeDownloadNewVersion(current, latest);
     },
 
-    uploadString(val) {
-        return new Promise((ok, err) => {
-            var boundary = "YELLOW_SUBMARINE";
-            var data = 
-                `--${boundary}\r\n` +
-                `Content-Type: text/plain\r\n` +
-                `Content-Disposition: form-data; name="file"; filename="upload.txt"\r\n` +
-                `Content-Transfer-Encoding: binary"\r\n\r\n` +
-                `${val}\r\n\r\n--${boundary}--`;
+    async getLaterRxrVersionIfExists() {
+        if (config.devMode) {
+            try {
+                await fs.stat(LOCAL_RXR_PATH);
+                return { url: LOCAL_RXR };
+            } catch (e) {
+                return null;
+            }
+        }
 
-            var options = {
-                host: 'file.io',
-                path: '/?expires=5m',
-                method: 'POST',
-                headers: {
-                  'Content-Length': Buffer.byteLength(data),
-                  'Content-Type': `multipart/form-data; boundary="${boundary}"`,
-              }
-            };
+        const version = await serial.getRxrVersion();
+        const splitVersion = v.split('.');
 
-            var request = https.request(options, res => {
+        const current = {
+            major: parseInt(splitVersion[0]),
+            minor: parseInt(splitVersion[1]),
+        };
+
+        const latest = await this.getLatestRxrVersion();
+
+        return await this.maybeDownloadNewVersion(current, latest);
+    },
+
+    async uploadString(val) {
+        const boundary = "YELLOW_SUBMARINE";
+        const data = 
+            `--${boundary}\r\n` +
+            `Content-Type: text/plain\r\n` +
+            `Content-Disposition: form-data; name="file"; filename="upload.txt"\r\n` +
+            `Content-Transfer-Encoding: binary"\r\n\r\n` +
+            `${val}\r\n\r\n--${boundary}--`;
+
+        const options = {
+            host: 'file.io',
+            path: '/?expires=5m',
+            method: 'POST',
+            headers: {
+              'Content-Length': Buffer.byteLength(data),
+              'Content-Type': `multipart/form-data; boundary="${boundary}"`,
+          }
+        };
+
+        return await new Promise((ok, err) => {
+            const request = https.request(options, res => {
                 if (res.statusCode !== 200) {
                     console.log(`Received status code ${res.statusCode} from file.io`);
                 }
@@ -268,8 +240,9 @@ module.exports = {
         });
     },
 
-    getEepromUrl() {
-        return serial.exportEeprom().then(eeprom => this.uploadString(eeprom));
+    async getEepromUrl() {
+        const eeprom = serial.exportEeprom();
+        return await this.uploadString(eeprom);
     },
 
     getFilepathForUrl(url) {
@@ -283,10 +256,10 @@ module.exports = {
         return dataDir + '/downloads/' + parsed.base;
     },
 
-    clearLocalBuild() {
+    async clearLocalBuild() {
         this.fsWatcher.close();
-        fs.unlink(LOCAL_TXR_PATH, e => {});
-        fs.unlink(LOCAL_RXR_PATH, e => {});
+        await fs.unlink(LOCAL_TXR_PATH);
+        await fs.unlink(LOCAL_RXR_PATH);
         this.watchForLocalBuildChanges();
     },
 
@@ -294,7 +267,7 @@ module.exports = {
         if (!config.devMode) {
             return;
         }
-        
+
         this.fsWatcher = fs.watch(LOCAL_BUILD_PATH, () => {
             events.emit(events.LOCAL_BUILD_CHANGED);
         });
