@@ -6,7 +6,7 @@ const serial = require('./serial-api');
 const events = require('./events');
 const _ = require('lodash');
 
-var btn_count = 0;
+let btn_count = 0;
 const PAW_1 = btn_count++;
 const PAW_2 = btn_count++;
 const PAW_3 = btn_count++;
@@ -39,7 +39,7 @@ module.exports = React.createClass({
             this.setState({buttonHovers: {[index]: val}});
         };
         const setLEDStatus = val => led => {
-            var {LEDStatuses} = this.state;
+            const {LEDStatuses} = this.state;
             this.setState({LEDStatuses: Object.assign({}, LEDStatuses, {[led]: val})});
         };
 

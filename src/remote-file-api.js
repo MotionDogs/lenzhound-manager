@@ -29,9 +29,9 @@ module.exports = {
 
     getAllVersions() {
         return new Promise((ok, err) => {
-            var options = {
+            const options = {
                 host: config.githubBinDirectoryHost,
-                path: config.githubBinDirectoryPath,
+                path: config.githubBinDirectoryPath + config.releaseChannel,
                 headers: {
                     "User-Agent": "Lenzhound-Manager-1.0",
                 },
@@ -43,7 +43,7 @@ module.exports = {
                     err(res);
                 }
 
-                var body = "";
+                const body = "";
 
                 res.on('error', e => {
                     err(e);
@@ -252,14 +252,17 @@ module.exports = {
             return LOCAL_RXR_PATH;
         }
 
-        var parsed = path.parse(url);
+        const parsed = path.parse(url);
         return dataDir + '/downloads/' + parsed.base;
     },
 
     async clearLocalBuild() {
         this.fsWatcher.close();
-        await fs.unlink(LOCAL_TXR_PATH);
-        await fs.unlink(LOCAL_RXR_PATH);
+        try {
+            await fs.unlink(LOCAL_TXR_PATH);
+            await fs.unlink(LOCAL_RXR_PATH);
+        } catch (e) {
+        }
         this.watchForLocalBuildChanges();
     },
 
@@ -268,7 +271,7 @@ module.exports = {
             return;
         }
 
-        this.fsWatcher = fs.watch(LOCAL_BUILD_PATH, () => {
+        this.fsWatcher = fs.watch(LOCAL_BUILD_PATH, { recursive: true }, () => {
             events.emit(events.LOCAL_BUILD_CHANGED);
         });
     },

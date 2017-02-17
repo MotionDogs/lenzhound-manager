@@ -9,7 +9,7 @@ const NavigateBefore = require('material-ui/lib/svg-icons/image/navigate-before'
 
 const MAX_MAX_SPEED = 1 << 15;
 const MAX_ACCEL = 32;
-const MAX_CHANNEL = 30;
+const MAX_CHANNEL = 6;
 
 module.exports = React.createClass({
     propTypes: {
@@ -84,9 +84,9 @@ module.exports = React.createClass({
             },
         };
 
-        var logb = (base, val) => Math.log10(val) / Math.log10(base);
-        var powRounded = (base, val) => Math.round(Math.pow(base, val));
-        var clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+        const logb = (base, val) => Math.log10(val) / Math.log10(base);
+        const powRounded = (base, val) => Math.round(Math.pow(base, val));
+        const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 
         return dogbone ? (
         <Paper style={styles.paper}>
@@ -128,15 +128,6 @@ module.exports = React.createClass({
                 transform={(v) => (v + 1) / (MAX_ACCEL + 1)}
                 invTransform={(v) => Math.round(v * (MAX_ACCEL - 1) + 1)}
                 onChange={callbacks.changeAccel}
-            />
-
-            <SliderControl
-                title="Channel"
-                disabled={channel === null}
-                value={clamp(channel || 0, 1, MAX_CHANNEL)}
-                transform={(v) => (v + 1) / MAX_CHANNEL}
-                invTransform={(v) => Math.round(v * (MAX_CHANNEL-1) + 1)}
-                onChange={callbacks.changeChannel}
             />
         </Paper>
         )

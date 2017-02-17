@@ -11,10 +11,19 @@ const ContentAdd = require('material-ui/lib/svg-icons/content/add');
 const CircularProgress = require('material-ui/lib/circular-progress');
 const Checkbox = require('material-ui/lib/checkbox');
 const Divider = require('material-ui/lib/divider');
+const SliderControl = require('./slider-control');
 
 const events = require('./events');
 const LensProfile = require('./lens-profile');
 const Theme = require('./theme');
+
+const MAX_CHANNEL = 6;
+
+const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+const mapRange = (val, min0, max0, min1, max1) =>
+    (clamp(val, min0, max0) - min0) / (max0 - min0) * (max1 - min1) + min1;
+const normalize = (val, min, max) => mapRange(val, min, max, 0, 1);
+const denormalize = (val, min, max) => mapRange(val, 0, 1, min, max);
 
 module.exports = React.createClass({
     propTypes: {
@@ -35,7 +44,7 @@ module.exports = React.createClass({
     },
 
     render() {
-        var { profiles, startInCal } = this.props;
+        var { profiles, startInCal, channel } = this.props;
 
         var styles = {
             outerDiv: {
@@ -56,6 +65,10 @@ module.exports = React.createClass({
             },
             startInCalCheckbox: {
                 padding: 14,
+                width: 'calc(100% - 28px)',
+            },
+            channelSlider: {
+                padding: '14px 14px 0 14px',
                 width: 'calc(100% - 28px)',
             },
         };
@@ -83,10 +96,10 @@ module.exports = React.createClass({
 
         const callbacks = {
             toggleStartInCal: () => {
-                events.emit(events.UPDATE_PROFILE, {
-                    profileId: profileId,
-                    startInCal: !startInCal,
-                });  
+                events.emit(events.UPDATE_START_IN_CAL, !startInCal);  
+            },
+            changeChannel: (val) => {
+                events.emit(events.UPDATE_CHANNEL, val);
             },
         };
 
@@ -105,6 +118,17 @@ module.exports = React.createClass({
                 </List>
 
                 <Divider/>
+
+                <div style={styles.channelSlider}>
+                    <SliderControl
+                        title="Channel"
+                        disabled={channel === null}
+                        value={clamp(channel || 0, 1, MAX_CHANNEL)}
+                        transform={(v) => normalize(v, 1, MAX_CHANNEL)}
+                        invTransform={(v) => Math.round(denormalize(v, 1, MAX_CHANNEL))}
+                        onChange={callbacks.changeChannel}
+                    />
+                </div>
 
                 <Checkbox
                   style={styles.startInCalCheckbox}

@@ -50,35 +50,37 @@ events.on(events.SERIAL_PORT_OPEN, () => {
                 profileId: null,
             });
 
+            await wait(10);
             const index = await api.getPresetIndex();
+            await wait(10);
             const startInCal = await api.getStartInCal();
-            const settings = [];
+            await wait(10);
+            const channel = await api.getChannel();
 
-            for (var i = 0; i < PAW_BUTTON_COUNT; i++) {
+            const settings = [];
+            for (let i = 0; i < PAW_BUTTON_COUNT; i++) {
+                await wait(10);
                 await api.setPresetIndex(i);
 
+                await wait(10);
                 const profileId = await api.getId();
                 await wait(10);
                 const maxSpeed = await api.getMaxSpeed();
                 await wait(10);
                 const accel = await api.getAccel();
                 await wait(10);
-                const channel = await api.getChannel();
-                await wait(10);
                 const profileName = await api.getName();
-                await wait(10);
 
                 settings.push({
                     profileId,
                     profileName,
                     maxSpeed,
                     accel,
-                    channel,
                 });
             }
 
             await api.setPresetIndex(index);
-            app.setProps({ startInCal, settings });
+            app.setProps({ startInCal, channel, settings });
         } else if (role === "DOGBONE") {
 
             const newVersion = await remoteFileApi.getLaterRxrVersionIfExists();
@@ -120,6 +122,18 @@ events.on(events.SERIAL_PORT_CLOSE, () => {
 
 const saveConfigsDebounced = _.debounce(() =>
     api.saveConfigs(), CONFIG_DEBOUNCE_MILLISECONDS);
+
+const updateChannelDebounced = _.debounce((c) => api.setChannel(c), 200);
+
+events.on(events.UPDATE_CHANNEL, (channel) => {
+    updateChannelDebounced(channel);
+    app.setProps({channel});
+});
+
+events.on(events.UPDATE_START_IN_CAL, (startInCal) => {
+    api.setStartInCal(startInCal);
+    app.setProps({startInCal});
+});
 
 events.on(events.UPDATE_PROFILE, (payload) => {
     const {
@@ -225,6 +239,18 @@ events.on(events.RESPONSE_OUTPUT(api.types.GET_MAX_VELOCITY), val => {
         const index = settings.findIndex(p => p.profileId === profileId);
         if (index != -1) { 
             settings[index].maxSpeed = maxSpeed;
+            app.setProps({settings});   
+        }
+    }
+});
+
+events.on(events.RESPONSE_OUTPUT(api.types.GET_ACCEL), val => {
+    const accel = parseInt(val);
+    const {settings, profileId} = app.getProps();
+    if (settings && profileId) {
+        const index = settings.findIndex(p => p.profileId === profileId);
+        if (index != -1) { 
+            settings[index].accel = accel;
             app.setProps({settings});   
         }
     }

@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const Avrgirl = require('avrgirl-arduino');
 
-var buffer = "";
-var port = null;
+let buffer = "";
+let port = null;
 
 const roles = {
     PAW: 0,
@@ -68,7 +68,7 @@ const DEFAULT_ID_SEED = 0xcafe;
 
 const lineTest = /^([^\n]*)\n/;
 
-var verboseLogging = true;
+let verboseLogging = true;
 
 const connect = (p) => {
     port = new serialport(p.comName, {
@@ -85,24 +85,24 @@ const connect = (p) => {
         port.on('data', data => {
             buffer += data;
 
-            var match;
+            let match;
             while (match = lineTest.exec(buffer)) {
-                var line = match[1];
-                var okResponse = /([a-zA-Z]) OK/;
-                var outputVar = /([a-zA-Z])=(.*)/;
-                var error = /ERR /;
+                const line = match[1];
+                const okResponse = /([a-zA-Z]) OK/;
+                const outputVar = /([a-zA-Z])=(.*)/;
+                const error = /ERR /;
 
                 if (okResponse.test(line)) {
-                    var ms = okResponse.exec(line);
-                    var k = ms[1];
+                    const ms = okResponse.exec(line);
+                    const k = ms[1];
 
                     verboseLogging && cconsole.log("out", `${types[k] || k} OK`);
 
                     events.emit(events.RESPONSE_OK(k));
                 } else if (outputVar.test(line)) {
-                    var ms = outputVar.exec(line);
-                    var k = ms[1];
-                    var v = ms[2];
+                    const ms = outputVar.exec(line);
+                    const k = ms[1];
+                    const v = ms[2];
 
                     verboseLogging && cconsole.log("out", `${types[k] || k}=${v}`);
 
@@ -132,7 +132,7 @@ const connect = (p) => {
     });
 };
 
-var interval = null;
+let interval = null;
 
 module.exports = {
     getPort: () => port,
@@ -215,7 +215,7 @@ module.exports = {
         interval = setInterval(() => {
             serialport.list((e, ports) => {
                 if (!ports) throw e;
-                var arduinos = ports.filter(p =>
+                const arduinos = ports.filter(p =>
                     /VID_2341.*PID_8036/i.test(p.pnpId) ||
                     (/2341/i.test(p.vendorId) && /8036/i.test(p.productId)));
                 if (arduinos.length == 1) {
@@ -326,13 +326,13 @@ module.exports = {
 
     importEeprom(val) {
         const scanLength = 16;
-        var start = 0;
-        var handler = () => {
-            var hexStart = start * 2;
-            var hexEnd = hexStart + (scanLength * 2);
-            var slice = val.slice(hexStart, hexEnd);
+        let start = 0;
+        let handler = () => {
+            const hexStart = start * 2;
+            const hexEnd = hexStart + (scanLength * 2);
+            const slice = val.slice(hexStart, hexEnd);
             if (slice.length) {
-                var payload = `${start} ${slice.length / 2} ${slice}`;
+                const payload = `${start} ${slice.length / 2} ${slice}`;
                 start += slice.length / 2;
                 return this._getApiOkPromiseWithVal(types.IMPORT_EEPROM, payload)
                     .then(handler);

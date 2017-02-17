@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const AppBar = require('material-ui/lib/app-bar');
 const LeftNav = require('material-ui/lib/left-nav');
 const MenuItem = require('material-ui/lib/menus/menu-item');
@@ -54,6 +53,7 @@ const Root = React.createClass({
             newRxrVersion,
             mode,
             startInCal,
+            channel,
         } = this.props;
 
         const pluggedIn = pawPluggedIn || dogbonePluggedIn || badVersion;
@@ -251,8 +251,7 @@ const Root = React.createClass({
             </div>
         );
 
-        const profile = settings.find(p =>
-            p.profileId == profileId);
+        const profile = settings.find(p => p.profileId == profileId);
 
         const pawSettingsSection = pawPluggedIn && (
             <div style={styles.pawSettingsSection}>
@@ -265,7 +264,7 @@ const Root = React.createClass({
         const dogboneSettingsSection = dogbonePluggedIn && (
             <div style={styles.dogboneSettingsSection}>
                 <div style={styles.settingsWrapper}>
-                    {<ProfileSettingsPanel {...profile} dogbone={true}/>}
+                    {<ProfileSettingsPanel {...profile} channel={channel} dogbone={true}/>}
                 </div>
             </div>
         );
@@ -273,7 +272,7 @@ const Root = React.createClass({
         const profilesSection = (
             <div style={styles.profilesSection}>
                 <div style={styles.profileList}>
-                    {<ProfileList profiles={settings} startInCal={startInCal}/>}
+                    {<ProfileList profiles={settings} startInCal={startInCal} channel={channel}/>}
                 </div>
             </div>
         );
@@ -292,16 +291,16 @@ const Root = React.createClass({
     }
 });
 
-const props = {};
+let props = {};
 module.exports = {
     setProps(newProps) {
-        props = _.merge(props, newProps);
+        props = Object.assign({}, props, newProps);
         ReactDOM.render(
             <Root {...props}/>,
             document.getElementById('app')
         );
     },
     getProps() {
-        return _.merge({}, props);
+        return Object.assign({}, props);
     }
 };
