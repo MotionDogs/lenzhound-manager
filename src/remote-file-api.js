@@ -12,6 +12,7 @@ const homeDir = process.platform == 'darwin' ?
 const dataDir = process.platform == 'darwin' ?
     homeDir + "/Library/Lenzhound" :
     homeDir + "/AppData/Local/Lenzhound";
+const contentDir = __dirname + "/../content";
 
 const LOCAL_TXR = "local-txr";
 const LOCAL_RXR = "local-rxr";
@@ -43,7 +44,7 @@ module.exports = {
                     err(res);
                 }
 
-                const body = "";
+                let body = "";
 
                 res.on('error', e => {
                     err(e);
@@ -118,7 +119,9 @@ module.exports = {
         try {
             await fs.stat(filePath);
         } catch (e) {
-            const res = await https.get(latest.url);
+            const res = await new Promise(ok => {
+                https.get(latest.url, ok);
+            });
 
             if (res.statusCode !== 200) {
                 throw new Error('panic: statusCode == ' + res.statusCode);
@@ -250,6 +253,10 @@ module.exports = {
             return LOCAL_TXR_PATH;
         } else if (url == "local-rxr") {
             return LOCAL_RXR_PATH;
+        } else if (url == "stable-txr") {
+            return contentDir + '/TXr-1.0.6.hex';
+        } else if (url == "stable-rxr") {
+            return contentDir + '/RXr-1.0.6.hex';
         }
 
         const parsed = path.parse(url);

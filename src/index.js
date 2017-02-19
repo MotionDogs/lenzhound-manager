@@ -1,4 +1,5 @@
 const React = require('react');
+const { ipcRenderer } = require('electron');
 const ReactDOM = require('react-dom');
 const app = require('./lib/app-root');
 const events = require('./lib/events');
@@ -37,7 +38,11 @@ const wait = (time) => {
 
 events.on(events.SERIAL_PORT_OPEN, () => {
     poll(1000, async stop => {
-        const role = await api.getRole();
+        let role;
+        try {
+            role = await api.getRole();
+        } catch (e) {
+        }
 
         if (role === "PAW") {
             const newVersion = await remoteFileApi.getLaterTxrVersionIfExists();
@@ -107,12 +112,12 @@ events.on(events.SERIAL_PORT_OPEN, () => {
             });
 
         } else {
-            app.setProps({badVersion: true});
+            app.setProps({badVersion: true, loading: false});
         }
 
         stop();
     }, err => {
-        app.setProps({badVersion: true});
+        app.setProps({badVersion: true, loading: false});
     });
 });
 
@@ -173,8 +178,9 @@ events.on(events.FORCE_UPLOAD_TXR, async () => {
     api.disableAutoConnect();
     app.setProps({loading: true});
 
-    const version = await remoteFileApi.getLaterTxrVersionIfExists();
-    await api.flashBoard(version.url);
+    const latest = await remoteFileApi.getLatestTxrVersion();
+    await remoteFileApi.maybeDownloadNewVersion({ major: 0, minor: 0 }, latest);
+    await api.flashBoard(latest.url);
 
     api.enableAutoConnect();
 });
@@ -183,8 +189,9 @@ events.on(events.FORCE_UPLOAD_RXR, async () => {
     api.disableAutoConnect();
     app.setProps({loading: true});
 
-    const version = await remoteFileApi.getLaterRxrVersionIfExists();
-    await api.flashBoard(version.url);
+    const latest = await remoteFileApi.getLatestRxrVersion();
+    await remoteFileApi.maybeDownloadNewVersion({ major: 0, minor: 0 }, latest);
+    await api.flashBoard(latest.url);
 
     api.enableAutoConnect();
 });
@@ -274,3 +281,23 @@ app.setProps({pawPluggedIn:false, settings: []});
 api.enableAutoConnect();
 
 remoteFileApi.watchForLocalBuildChanges();
+
+ipcRenderer.on("reset-settings", async () => {
+    api.disableAutoConnect();
+    app.setProps({loading: true});
+    try {
+        await api.factoryReset();
+    } catch (e) {
+    }
+    api.enableAutoConnect();
+});
+
+ipcRenderer.on("reset-to-stable", async () => {
+    api.disableAutoConnect();
+    app.setProps({loading: true});
+    try {
+        await api.resetToStable();
+    } catch (e) {
+    }
+    api.enableAutoConnect();
+});

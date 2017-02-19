@@ -194,6 +194,10 @@ const Root = React.createClass({
             circularProgressWrapper: {
                 textAlign: 'center',
             },
+            lonelyCircularProgressWrapper: {
+                textAlign: 'center',
+                paddingTop: 48,
+            },
             inlineCircularProgress: {
                 display: "inline-block",
                 position: "absolute",
@@ -279,13 +283,19 @@ const Root = React.createClass({
 
         return (
         <div style={styles.rootDiv}>
-            <div style={styles.innerDiv}>
+            {!loading && <div style={styles.innerDiv}>
                 {pawSection}
                 {dogboneSection}
                 {pawSettingsSection}
                 {dogboneSettingsSection}
                 {profilesSection}
-            </div>
+            </div>}
+            {loading && <div style={styles.innerDiv}>
+                <div style={styles.lonelyCircularProgressWrapper}>
+                    <CircularProgress
+                        color={Theme.palette.accent1Color}/>
+                </div>
+            </div>}
         </div>
         );
     }

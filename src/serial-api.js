@@ -60,6 +60,7 @@ const types = {
     RELOAD_CONFIGS: 'x', 'x': 'RELOAD_CONFIGS',
     EXPORT_EEPROM: 'g', 'g': 'EXPORT_EEPROM',
     IMPORT_EEPROM: 'G', 'G': 'IMPORT_EEPROM',
+    FACTORY_RESET: 'Y', 'Y': 'FACTORY_RESET',
     GET_LED: 'l', 'l': 'GET_LED',
     INVALID_COMMAND: '`', '`': 'INVALID_COMMAND',
 };
@@ -346,6 +347,24 @@ module.exports = {
         return this._getApiOkPromise(types.RELOAD_CONFIGS);
     },
 
+    async factoryReset() {
+        await this._getApiOkPromise(types.FACTORY_RESET);
+
+        const role = await this.getRole();
+
+        let latest;
+        if (role == "PAW") {
+            latest = await remoteFileApi.getLatestTxrVersion();
+        } else if (role == "DOGBONE") {
+            latest = await remoteFileApi.getLatestRxrVersion();
+        } else {
+            return;
+        }
+
+        await remoteFileApi.maybeDownloadNewVersion({ major: 0, minor: 0 }, latest);
+        await this.flashBoard(latest.url);
+    },
+
     getRole() {
         return this._getApiPromise(types.GET_ROLE, r => {
             var parsed = parseInt(r);
@@ -403,6 +422,21 @@ module.exports = {
                 if (err) throw err;
             });
         }
+    },
+
+    async resetToStable() {
+        const role = await this.getRole();
+
+        let url;
+        if (role == "PAW") {
+            url = "stable-txr";
+        } else if (role == "DOGBONE") {
+            url = "stable-rxr";
+        } else {
+            return;
+        }
+
+        await this.flashBoard(url);
     },
 
     flashBoard(url, progressMonitor) {
