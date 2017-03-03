@@ -159,7 +159,7 @@ module.exports = {
         }
 
         const version = await serial.getTxrVersion();
-        const splitVersion = v.split('.');
+        const splitVersion = version.split('.');
 
         const current = {
             major: parseInt(splitVersion[0]),
@@ -182,7 +182,7 @@ module.exports = {
         }
 
         const version = await serial.getRxrVersion();
-        const splitVersion = v.split('.');
+        const splitVersion = version.split('.');
 
         const current = {
             major: parseInt(splitVersion[0]),
@@ -278,8 +278,11 @@ module.exports = {
             return;
         }
 
-        this.fsWatcher = fs.watch(LOCAL_BUILD_PATH, { recursive: true }, () => {
-            events.emit(events.LOCAL_BUILD_CHANGED);
-        });
+        try {
+            this.fsWatcher = fs.watch(LOCAL_BUILD_PATH, { recursive: true }, () => {
+                events.emit(events.LOCAL_BUILD_CHANGED);
+            });   
+        } catch (e) {
+        }
     },
 };

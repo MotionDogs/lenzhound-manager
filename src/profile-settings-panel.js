@@ -50,10 +50,7 @@ module.exports = React.createClass({
                 });
             },
             changeChannel: (val) => {
-                events.emit(events.UPDATE_PROFILE, {
-                    profileId: profileId,
-                    channel: val,
-                });
+                events.emit(events.UPDATE_CHANNEL, val);
             },
             changeProfileName: (event) => {
                 events.emit(events.UPDATE_PROFILE, {
@@ -87,6 +84,10 @@ module.exports = React.createClass({
         const logb = (base, val) => Math.log10(val) / Math.log10(base);
         const powRounded = (base, val) => Math.round(Math.pow(base, val));
         const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+        const mapRange = (val, min0, max0, min1, max1) =>
+            (clamp(val, min0, max0) - min0) / (max0 - min0) * (max1 - min1) + min1;
+        const normalize = (val, min, max) => mapRange(val, min, max, 0, 1);
+        const denormalize = (val, min, max) => mapRange(val, 0, 1, min, max);
 
         return dogbone ? (
         <Paper style={styles.paper}>
@@ -94,8 +95,8 @@ module.exports = React.createClass({
                 title="Channel"
                 disabled={channel === null}
                 value={clamp(channel || 0, 1, MAX_CHANNEL)}
-                transform={(v) => (v + 1) / MAX_CHANNEL}
-                invTransform={(v) => Math.round(v * (MAX_CHANNEL - 1) + 1)}
+                transform={(v) => normalize(v, 1, MAX_CHANNEL)}
+                invTransform={(v) => Math.round(denormalize(v, 1, MAX_CHANNEL))}
                 onChange={callbacks.changeChannel}
             />
         </Paper>
@@ -116,8 +117,8 @@ module.exports = React.createClass({
                 title="Max speed"
                 disabled={maxSpeed === null}
                 value={clamp(maxSpeed || 0, 1, MAX_MAX_SPEED)}
-                transform={(v) => (v + 1) / (MAX_MAX_SPEED + 1)}
-                invTransform={(v) => Math.round(v * (MAX_MAX_SPEED - 1) + 1)}
+                transform={(v) => normalize(v, 1, MAX_MAX_SPEED)}
+                invTransform={(v) => Math.round(denormalize(v, 1, MAX_MAX_SPEED))}
                 onChange={callbacks.changeMaxSpeed}
             />
 
@@ -125,8 +126,8 @@ module.exports = React.createClass({
                 title="Acceleration"
                 disabled={accel === null}
                 value={clamp(accel || 0, 1, MAX_ACCEL)}
-                transform={(v) => (v + 1) / (MAX_ACCEL + 1)}
-                invTransform={(v) => Math.round(v * (MAX_ACCEL - 1) + 1)}
+                transform={(v) => normalize(v, 1, MAX_ACCEL)}
+                invTransform={(v) => Math.round(denormalize(v, 1, MAX_ACCEL))}
                 onChange={callbacks.changeAccel}
             />
         </Paper>

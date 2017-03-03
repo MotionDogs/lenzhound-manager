@@ -101,13 +101,13 @@ events.on(events.SERIAL_PORT_OPEN, () => {
 
             app.setProps({
                 profileId: 1,
+                channel,
+                startInCal: null,
                 settings: [{
                     profileId: 1,
                     profileName: null,
-                    startInCal: null,
                     maxSpeed: null,
                     accel: null,
-                    channel,
                 }]
             });
 

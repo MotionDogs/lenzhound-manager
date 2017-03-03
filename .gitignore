@@ -5,3 +5,5 @@ lib*
 *win32-x32*
 *darwin-x64*
 *darwin-x32*
+.DS_Store
+*.dmg
