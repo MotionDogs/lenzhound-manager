@@ -63,15 +63,6 @@ const Root = React.createClass({
 
         const onClicks = {
             appBarLeftIcon: () => {this.setState({navOpen: true})},
-            uploadIcon: () => {
-                if (pawPluggedIn) {
-                    events.emit(events.UPLOAD_TO_TXR, newTxrVersion);
-                } else if (dogbonePluggedIn) {
-                    events.emit(events.UPLOAD_TO_RXR, newRxrVersion);
-                } else {
-                    throw new Error("Clicked upload without being plugged in.")
-                }
-            },
             uploadTxr: () => {
                 events.emit(events.FORCE_UPLOAD_TXR);
             },
@@ -160,14 +151,6 @@ const Root = React.createClass({
                 cursor: 'pointer',
                 display: newVersion ? 'block' : 'none',
             },
-            uploadIcon: {
-                fill: Theme.palette.accent1Color,
-                marginBottom: -6,
-            },
-            uploadCopy: {
-                color: Theme.palette.accent1Color,
-                fontFamily: 'Roboto',
-            },
             profileList: {},
             badVersionWrapperOuter: {
                 width: '100%',
@@ -190,6 +173,7 @@ const Root = React.createClass({
                 color: '#fff',
                 padding: 8,
                 fontSize: '0.8em',
+                fontFamily: 'Roboto, sans-serif',
             },
             circularProgressWrapper: {
                 textAlign: 'center',

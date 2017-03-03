@@ -3,5 +3,5 @@ module.exports = {
     githubBinDirectoryPath: "/repos/MotionDogs/lenzhound-firmware/contents/",
     releaseChannel: "bin",
     ravenUrl: "http://f1289dd31d3d4aaea094bd9e60fcba97@104.236.172.145:9000/2",
-    devMode: true,
+    devMode: false,
 };
