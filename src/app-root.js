@@ -86,7 +86,7 @@ const Root = React.createClass({
         const styles = {
             rootDiv: {
                 background: badVersion ?
-                    '' : 'url(content/lenzhound-bg.svg)',
+                    '' : 'url(content/lenzhound-bg.png)',
                 position: 'absolute',
                 width: '100%',
                 height: '100%',
