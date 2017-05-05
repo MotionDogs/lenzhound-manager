@@ -194,6 +194,63 @@ module.exports = {
         return await this.maybeDownloadNewVersion(current, latest);
     },
 
+    async forceGetLatestTxrVersion() {
+        if (config.devMode) {
+            try {
+                await fs.stat(LOCAL_TXR_PATH);
+                return { url: LOCAL_TXR };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        const current = { major: 0, minor: 0, };
+
+        const latest = await this.getLatestTxrVersion();
+
+        return await this.maybeDownloadNewVersion(current, latest);
+    },
+
+    async forceGetLatestRxrVersion() {
+        if (config.devMode) {
+            try {
+                await fs.stat(LOCAL_RXR_PATH);
+                return { url: LOCAL_RXR };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        const current = { major: 0, minor: 0, };
+
+        const latest = await this.getLatestRxrVersion();
+
+        return await this.maybeDownloadNewVersion(current, latest);
+    },
+
+    async getLaterRxrVersionIfExists() {
+        if (config.devMode) {
+            try {
+                await fs.stat(LOCAL_RXR_PATH);
+                return { url: LOCAL_RXR };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        const version = await serial.getRxrVersion();
+        const splitVersion = version.split('.');
+
+        const current = {
+            major: parseInt(splitVersion[0]),
+            minor: parseInt(splitVersion[1]),
+        };
+
+        const latest = await this.getLatestRxrVersion();
+
+        return await this.maybeDownloadNewVersion(current, latest);
+    },
+
     async uploadString(val) {
         const boundary = "YELLOW_SUBMARINE";
         const data = 
@@ -267,6 +324,9 @@ module.exports = {
         this.fsWatcher.close();
         try {
             await fs.unlink(LOCAL_TXR_PATH);
+        } catch (e) {
+        }
+        try {
             await fs.unlink(LOCAL_RXR_PATH);
         } catch (e) {
         }

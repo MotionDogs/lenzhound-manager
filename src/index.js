@@ -178,8 +178,7 @@ events.on(events.FORCE_UPLOAD_TXR, async () => {
     api.disableAutoConnect();
     app.setProps({loading: true});
 
-    const latest = await remoteFileApi.getLatestTxrVersion();
-    await remoteFileApi.maybeDownloadNewVersion({ major: 0, minor: 0 }, latest);
+    const latest = await remoteFileApi.forceGetLatestTxrVersion();
     await api.flashBoard(latest.url);
 
     api.enableAutoConnect();
@@ -189,8 +188,7 @@ events.on(events.FORCE_UPLOAD_RXR, async () => {
     api.disableAutoConnect();
     app.setProps({loading: true});
 
-    const latest = await remoteFileApi.getLatestRxrVersion();
-    await remoteFileApi.maybeDownloadNewVersion({ major: 0, minor: 0 }, latest);
+    const latest = await remoteFileApi.forceGetLatestRxrVersion();
     await api.flashBoard(latest.url);
 
     api.enableAutoConnect();
