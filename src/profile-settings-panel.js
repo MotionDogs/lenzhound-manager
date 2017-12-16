@@ -15,6 +15,7 @@ module.exports = React.createClass({
     propTypes: {
         maxSpeed: React.PropTypes.number,
         accel: React.PropTypes.number,
+        currentLevel: React.PropTypes.bool,
         startInCal: React.PropTypes.bool,
         dogbone: React.PropTypes.bool,
     },
@@ -24,6 +25,7 @@ module.exports = React.createClass({
             dogbone,
             maxSpeed,
             accel,
+            currentLevel,
             startInCal,
             profileName,
             profileId,
@@ -47,6 +49,12 @@ module.exports = React.createClass({
                 events.emit(events.UPDATE_PROFILE, {
                     profileId: profileId,
                     accel: val,
+                });
+            },
+            toggleCurrentLevel: () => {
+                events.emit(events.UPDATE_PROFILE, {
+                    profileId: profileId,
+                    currentLevel: !currentLevel,
                 });
             },
             changeChannel: (val) => {
@@ -78,6 +86,10 @@ module.exports = React.createClass({
                 top: -19,
                 marginLeft: 12,
                 width: 197,
+            },
+            currentLevelCheckbox: {
+                padding: 14,
+                width: 'calc(100% - 28px)',
             },
         };
 
@@ -130,6 +142,15 @@ module.exports = React.createClass({
                 invTransform={(v) => Math.round(denormalize(v, 1, MAX_ACCEL))}
                 onChange={callbacks.changeAccel}
             />
+
+            <Checkbox
+              style={styles.currentLevelCheckbox}
+              label="Current Level Reduction"
+              labelPosition='left'
+              disabled={currentLevel === null}
+              onCheck={callbacks.toggleCurrentLevel}
+              defaultChecked={currentLevel || false}
+            />            
         </Paper>
         )
     }

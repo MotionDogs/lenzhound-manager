@@ -75,12 +75,15 @@ events.on(events.SERIAL_PORT_OPEN, () => {
                 const accel = await api.getAccel();
                 await wait(10);
                 const profileName = await api.getName();
+                await wait(10);
+                const currentLevel = await api.getCurrentLevel();
 
                 settings.push({
                     profileId,
                     profileName,
                     maxSpeed,
                     accel,
+                    currentLevel,
                 });
             }
 
@@ -108,6 +111,7 @@ events.on(events.SERIAL_PORT_OPEN, () => {
                     profileName: null,
                     maxSpeed: null,
                     accel: null,
+                    currentLevel: null,
                 }]
             });
 
@@ -145,6 +149,7 @@ events.on(events.UPDATE_PROFILE, (payload) => {
         profileId,
         maxSpeed,
         accel,
+        currentLevel,
         channel,
         profileName,
         startInCal
@@ -159,6 +164,10 @@ events.on(events.UPDATE_PROFILE, (payload) => {
         mergeProfile(profileId, {accel});
         api.setAccel(accel);
         saveConfigsDebounced();
+    }
+    if (currentLevel === false || currentLevel === true) {
+        mergeProfile(profileId, {currentLevel});
+        api.setCurrentLevel(currentLevel);
     }
     if (channel) {
         mergeProfile(profileId, {channel});
@@ -257,6 +266,18 @@ events.on(events.RESPONSE_OUTPUT(api.types.GET_ACCEL), val => {
         if (index != -1) { 
             settings[index].accel = accel;
             app.setProps({settings});   
+        }
+    }
+});
+
+events.on(events.RESPONSE_OUTPUT(api.types.GET_CURRENT_LEVEL), val => {
+    const currentLevel = parseInt(val);
+    const {settings, profileId} = app.getProps();
+    if (settings && profileId) {
+        const index = settings.findIndex(p => p.profileId === profileId);
+        if (index != -1) {
+            settings[index].currentLevel = currentLevel;
+            app.setProps({settings});
         }
     }
 });

@@ -56,12 +56,14 @@ const types = {
     SET_Z_ACCEL: 'B', 'B': 'SET_Z_ACCEL',
     GET_POT: 'p', 'p': 'GET_POT',
     GET_ENCODER: 'e', 'e': 'GET_ENCODER',
+    GET_LED: 'l', 'l': 'GET_LED',
+    GET_CURRENT_LEVEL: 'f', 'f': 'GET_CURRENT_LEVEL',
+    SET_CURRENT_LEVEL: 'F', 'F': 'SET_CURRENT_LEVEL',
     SAVE_CONFIGS: 'u', 'u': 'SAVE_CONFIGS',
     RELOAD_CONFIGS: 'x', 'x': 'RELOAD_CONFIGS',
     EXPORT_EEPROM: 'g', 'g': 'EXPORT_EEPROM',
     IMPORT_EEPROM: 'G', 'G': 'IMPORT_EEPROM',
     FACTORY_RESET: 'Y', 'Y': 'FACTORY_RESET',
-    GET_LED: 'l', 'l': 'GET_LED',
     INVALID_COMMAND: '`', '`': 'INVALID_COMMAND',
 };
 
@@ -303,7 +305,15 @@ module.exports = {
     getAccel() {
         return this._getApiPromise(types.GET_ACCEL, v => parseInt(v));
     },
+    
+    setCurrentLevel(val) {
+        return this._getApiOkPromiseWithVal(types.SET_CURRENT_LEVEL, val ? "0" : "1");
+    },
 
+    getCurrentLevel() {
+        return this._getApiPromise(types.GET_CURRENT_LEVEL, v => (v === "0") ? false : true);
+    },    
+    
     saveConfigs() {
         return this._getApiOkPromise(types.SAVE_CONFIGS);
     },
