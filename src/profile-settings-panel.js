@@ -9,7 +9,7 @@ const NavigateBefore = require('material-ui/lib/svg-icons/image/navigate-before'
 
 const MAX_MAX_SPEED = 1 << 15;
 const MAX_ACCEL = 32;
-const MAX_CHANNEL = 6;
+const MAX_CHANNEL = 81;
 
 module.exports = React.createClass({
     propTypes: {
@@ -37,7 +37,7 @@ module.exports = React.createClass({
                 events.emit(events.UPDATE_PROFILE, {
                     profileId: profileId,
                     startInCal: !startInCal,
-                });  
+                });
             },
             changeMaxSpeed: (val) => {
                 events.emit(events.UPDATE_PROFILE, {
@@ -116,7 +116,7 @@ module.exports = React.createClass({
         <Paper style={styles.paper}>
             <NavigateBefore
                 style={styles.navigateBefore}
-                onClick={callbacks.goToProfileList} 
+                onClick={callbacks.goToProfileList}
             />
 
             <TextField
@@ -150,7 +150,7 @@ module.exports = React.createClass({
               disabled={currentLevel === null}
               onCheck={callbacks.toggleCurrentLevel}
               defaultChecked={currentLevel || false}
-            />            
+            />
         </Paper>
         )
     }

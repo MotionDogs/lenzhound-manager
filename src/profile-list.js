@@ -17,7 +17,7 @@ const events = require('./events');
 const LensProfile = require('./lens-profile');
 const Theme = require('./theme');
 
-const MAX_CHANNEL = 6;
+const MAX_CHANNEL = 81;
 
 const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 const mapRange = (val, min0, max0, min1, max1) =>
@@ -96,7 +96,7 @@ module.exports = React.createClass({
 
         const callbacks = {
             toggleStartInCal: () => {
-                events.emit(events.UPDATE_START_IN_CAL, !startInCal);  
+                events.emit(events.UPDATE_START_IN_CAL, !startInCal);
             },
             changeChannel: (val) => {
                 events.emit(events.UPDATE_CHANNEL, val);
