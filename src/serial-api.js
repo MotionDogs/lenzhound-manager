@@ -305,15 +305,15 @@ module.exports = {
     getAccel() {
         return this._getApiPromise(types.GET_ACCEL, v => parseInt(v));
     },
-    
+
     setCurrentLevel(val) {
-        return this._getApiOkPromiseWithVal(types.SET_CURRENT_LEVEL, val ? "0" : "1");
+        return this._getApiOkPromiseWithVal(types.SET_CURRENT_LEVEL, val ? "1" : "0");
     },
 
     getCurrentLevel() {
         return this._getApiPromise(types.GET_CURRENT_LEVEL, v => (v === "0") ? false : true);
-    },    
-    
+    },
+
     saveConfigs() {
         return this._getApiOkPromise(types.SAVE_CONFIGS);
     },

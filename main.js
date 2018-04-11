@@ -80,7 +80,7 @@ const createWindow = function () {
           }
         },
         {
-          label: 'Reset to stable version',
+          label: 'Revert to v1 firmware',
           click() {
             mainWindow.webContents.send("reset-to-stable");
           }

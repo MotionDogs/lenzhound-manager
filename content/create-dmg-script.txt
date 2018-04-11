@@ -1,0 +1,10 @@
+./create-dmg \
+--volname "Lenzhound Leash Installer" \
+--volicon "/Users/editdelta/Documents/GitHub/lenzhound-manager/content/install-icon.icns" \
+--background "/Users/editdelta/Documents/GitHub/lenzhound-manager/content/lenzhound-leash-dmg-bg.png" \
+--window-pos 200 400 \
+--window-size 640 455 \
+--icon-size 50 \
+--icon "Lenzhound\ Leash.app" 200 320 \
+--app-drop-link 440 320 \
+Lenzhound-Leash-1.1.2_osx.dmg /Users/editdelta/Documents/GitHub/lenzhound-manager/Lenzhound\ Leash-darwin-x64 
