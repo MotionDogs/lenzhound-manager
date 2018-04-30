@@ -54,6 +54,7 @@ const Root = React.createClass({
             mode,
             startInCal,
             channel,
+            motorDriver,
         } = this.props;
 
         const pluggedIn = pawPluggedIn || dogbonePluggedIn || badVersion;
@@ -216,7 +217,7 @@ const Root = React.createClass({
                                 style={styles.uploadButton}
                                 label={resources.skipUploading}
                                 primary={false}
-                                onMouseDown={onClicks.skipUpload} />   
+                                onMouseDown={onClicks.skipUpload} />
                             {loading && <div style={styles.circularProgressWrapper}>
                                 <CircularProgress
                                     color={Theme.palette.accent1Color}/>
@@ -252,7 +253,7 @@ const Root = React.createClass({
         const dogboneSettingsSection = dogbonePluggedIn && (
             <div style={styles.dogboneSettingsSection}>
                 <div style={styles.settingsWrapper}>
-                    {<ProfileSettingsPanel {...profile} channel={channel} dogbone={true}/>}
+                    {<ProfileSettingsPanel {...profile} motorDriver={motorDriver} channel={channel} dogbone={true}/>}
                 </div>
             </div>
         );

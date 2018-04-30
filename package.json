@@ -1,6 +1,6 @@
 {
   "name": "lenzhound-leash",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Lenzhound settings and timelapse manager.",
   "main": "main.js",
   "scripts": {
@@ -26,16 +26,16 @@
     "electron-rebuild": "^1.7.3"
   },
   "dependencies": {
-    "avrgirl-arduino": "^1.11.12",
-    "electron": "^1.8.4",
+    "avrgirl-arduino": "^2.2.9",
+    "electron": "^1.8.6",
     "event-emitter": "^0.3.5",
-    "lodash": "^4.17.5",
+    "lodash": "^4.17.10",
     "material-ui": "^0.14.4",
     "promisify-node": "^0.4.0",
     "react": "^0.14.9",
     "react-dom": "^0.14.9",
     "react-tap-event-plugin": "^0.2.2",
-    "serialport": "^4.0.7",
+    "serialport": "^6.2.0",
     "string-hash": "^1.1.3"
   }
 }

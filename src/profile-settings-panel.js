@@ -18,6 +18,7 @@ module.exports = React.createClass({
         currentLevel: React.PropTypes.bool,
         startInCal: React.PropTypes.bool,
         dogbone: React.PropTypes.bool,
+        motorLevel: React.PropTypes.bool,
     },
 
     render() {
@@ -30,6 +31,7 @@ module.exports = React.createClass({
             profileName,
             profileId,
             channel,
+            motorDriver,
         } = this.props;
 
         const callbacks = {
@@ -56,6 +58,9 @@ module.exports = React.createClass({
                     profileId: profileId,
                     currentLevel: !currentLevel,
                 });
+            },
+            toggleMotorDriver: () => {
+                events.emit(events.UPDATE_MOTOR_DRIVER,!motorDriver);
             },
             changeChannel: (val) => {
                 events.emit(events.UPDATE_CHANNEL, val);
@@ -110,6 +115,15 @@ module.exports = React.createClass({
                 transform={(v) => normalize(v, 1, MAX_CHANNEL)}
                 invTransform={(v) => Math.round(denormalize(v, 1, MAX_CHANNEL))}
                 onChange={callbacks.changeChannel}
+            />
+
+            <Checkbox
+              style={styles.currentLevelCheckbox}
+              label="Enable 3XT Driver"
+              labelPosition='left'
+              disabled={motorDriver === null}
+              onCheck={callbacks.toggleMotorDriver}
+              defaultChecked={motorDriver || false}
             />
         </Paper>
         ) : (

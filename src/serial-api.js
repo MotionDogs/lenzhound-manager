@@ -59,6 +59,8 @@ const types = {
     GET_LED: 'l', 'l': 'GET_LED',
     GET_CURRENT_LEVEL: 'f', 'f': 'GET_CURRENT_LEVEL',
     SET_CURRENT_LEVEL: 'F', 'F': 'SET_CURRENT_LEVEL',
+    GET_MOTOR_DRIVER: 'j', 'j': 'GET_MOTOR_DRIVER',
+    SET_MOTOR_DRIVER: 'J', 'J': 'SET_MOTOR_DRIVER',
     SAVE_CONFIGS: 'u', 'u': 'SAVE_CONFIGS',
     RELOAD_CONFIGS: 'x', 'x': 'RELOAD_CONFIGS',
     EXPORT_EEPROM: 'g', 'g': 'EXPORT_EEPROM',
@@ -312,6 +314,13 @@ module.exports = {
 
     getCurrentLevel() {
         return this._getApiPromise(types.GET_CURRENT_LEVEL, v => (v === "0") ? false : true);
+    },
+    setMotorDriver(val) {
+        return this._getApiOkPromiseWithVal(types.SET_MOTOR_DRIVER, val ? "1" : "0");
+    },
+
+    getMotorDriver() {
+        return this._getApiPromise(types.GET_MOTOR_DRIVER, v => (v === "0") ? false : true);
     },
 
     saveConfigs() {

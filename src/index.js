@@ -101,10 +101,12 @@ events.on(events.SERIAL_PORT_OPEN, () => {
             });
 
             const channel = await api.getChannel();
+            const motorDriver = await api.getMotorDriver();
 
             app.setProps({
                 profileId: 1,
                 channel,
+                motorDriver,
                 startInCal: null,
                 settings: [{
                     profileId: 1,
@@ -142,6 +144,11 @@ events.on(events.UPDATE_CHANNEL, (channel) => {
 events.on(events.UPDATE_START_IN_CAL, (startInCal) => {
     api.setStartInCal(startInCal);
     app.setProps({startInCal});
+});
+
+events.on(events.UPDATE_MOTOR_DRIVER, (motorDriver) => {
+    api.setMotorDriver(motorDriver);
+    app.setProps({motorDriver});
 });
 
 events.on(events.UPDATE_PROFILE, (payload) => {
@@ -251,9 +258,9 @@ events.on(events.RESPONSE_OUTPUT(api.types.GET_MAX_VELOCITY), val => {
     const {settings, profileId} = app.getProps();
     if (settings && profileId) {
         const index = settings.findIndex(p => p.profileId === profileId);
-        if (index != -1) { 
+        if (index != -1) {
             settings[index].maxSpeed = maxSpeed;
-            app.setProps({settings});   
+            app.setProps({settings});
         }
     }
 });
@@ -263,9 +270,9 @@ events.on(events.RESPONSE_OUTPUT(api.types.GET_ACCEL), val => {
     const {settings, profileId} = app.getProps();
     if (settings && profileId) {
         const index = settings.findIndex(p => p.profileId === profileId);
-        if (index != -1) { 
+        if (index != -1) {
             settings[index].accel = accel;
-            app.setProps({settings});   
+            app.setProps({settings});
         }
     }
 });
